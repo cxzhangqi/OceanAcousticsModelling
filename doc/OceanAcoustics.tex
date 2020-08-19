@@ -17,7 +17,7 @@
 \maketitle
 \tableofcontents
 
-\chapter{Infinite Domain Modelling}
+\chapter{Ocean Parameters}
 \section{Attenuation}
 \subsection{Units}
 TODO: Re-express all ocean parameters (except frequency) as complex. Julia implementation shows such.
@@ -63,7 +63,6 @@ so
 	&= \frac{\alpha^{(\lambda)}}{40\pi\log_{10}(e)}
 }
 
-\chapter{Bounded Domain Modelling}
 \section{Bottom Loss}
 \M{
 	\calZ_1 = \frac{\rho_1 \varsigma_1}{\sin(\theta_1)} \\
@@ -74,6 +73,13 @@ so
 	\calR = \frac{\calZ_\text{tot} - \calZ_1}{\calZ_\text{tot} + \calZ_1} \\
 	\BL = -10\log_{10}\Abs{\calR}^2
 }
+
+\chapter{Ray Tracing}
+\M{
+	\Dif{r}{z} = \cot\Par{\theta(z)}
+}
+\section{Eikonal Equation}
+
 
 \bibliographystyle{apalike}
 \bibliography{OAM}
