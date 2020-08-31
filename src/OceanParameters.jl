@@ -48,46 +48,46 @@ function bottom_loss(θ₁;
 	return BL
 end
 
-struct Sonar
+# struct Sonar
 
-end
+# end
 
-struct Medium
+# struct Medium
 
-end
+# end
 
-struct Fluid <: Medium
+# struct Fluid
 
-end
+# end
 
-struct Solid <: Medium
-	cₚ::Real
-	cₛ::Real
-	αₚ::Real
-	αₛ::Real
-	ρ₂::Real
-end
+# struct Solid
+# 	cₚ::Real
+# 	cₛ::Real
+# 	αₚ::Real
+# 	αₛ::Real
+# 	ρ₂::Real
+# end
 
-function bottom_loss(θ₁, Sig::Sonar, Ocn::Fluid, Sed::Solid)
-	# Signal
-	f = Sig.f
+# function bottom_loss(θ₁, Sig::Sonar, Ocn::Fluid, Sed::Solid)
+# 	# Signal
+# 	f = Sig.f
 	
-	# Ocean
-	c₁ = Ocn.c
-	α₁ = Ocn.α
-	ρ₁ = Ocn.ρ
+# 	# Ocean
+# 	c₁ = Ocn.c
+# 	α₁ = Ocn.α
+# 	ρ₁ = Ocn.ρ
 
-	# Sediment
-	cₚ = Sed.cₚ
-	cₛ = Sed.cₛ
-	αₚ = Sed.αₚ
-	αₛ = Sed.αₛ
-	ρ₂ = Sed.ρ
+# 	# Sediment
+# 	cₚ = Sed.cₚ
+# 	cₛ = Sed.cₛ
+# 	αₚ = Sed.αₚ
+# 	αₛ = Sed.αₛ
+# 	ρ₂ = Sed.ρ
 
-	BL = bottom_loss(θ₁;
-	f,
-	c₁, α₁, ρ₁,
-	cₚ, cₛ, αₚ, αₛ, ρ₂)
-end
+# 	BL = bottom_loss(θ₁;
+# 	f,
+# 	c₁, α₁, ρ₁,
+# 	cₚ, cₛ, αₚ, αₛ, ρ₂)
+# end
 
 end

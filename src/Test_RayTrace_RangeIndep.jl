@@ -26,6 +26,7 @@ end
 
 """
 TODO:
+* Add ray pressure calculation.
 * Check initial depth is between bathymetry and altimetry.
 * Multiple dispatch on struct contructor methods.
 * Report issue to DiffEqBase.
