@@ -140,4 +140,74 @@ for n = 1:length(θ₀_vec)
 end
 end
 
-##
+## Add Boundaries to Ray Trace
+using DifferentialEquations
+
+cMin = 1500
+cMax = 1600
+α = [0 0 1; 2.5e5 5e2 1; 1e6 1e3 1]\[cMax; cMin; cMax]
+c(r, z) = α[1]*z^2 + α[2]*z + α[3]
+# c(r, z) = 0. < z < 1e3 ? c_(r, z) : -c_(r, z)
+∂cz(r, z) = 2α[1]*z + α[2]
+∂cr(r, z) = 0.
+
+# Depth = range(0., 1e3, length = 100)
+# Speed = c.(0, Depth)
+
+# plot(Speed, Depth)
+
+r₀ = 0.
+z₀ = 250.
+# θ₀ = atan(10.0/9.1)
+θ₀_max = acos(c(r₀, z₀)/cMax)
+# θ₀_vec = [-θ₀_max; 0; θ₀_max]
+θ₀_vec = [-1.5; -1.0; 0.0; 1.0; 1.5].*θ₀_max
+
+# Boundaries
+# * Altimetry
+Aty_condition(u, t, integrator) = u[2]
+Aty_affect!(integrator) = integrator.u[4] *= -1
+Aty_cb = ContinuousCallback(Aty_condition, Aty_affect!)
+
+# * Bathymetry
+z_bty = 1e3
+Bty_condition(u, t, integrator) = u[2] - z_bty
+Bty_affect!(integrator) = integrator.u[4] *= -1
+Bty_cb = ContinuousCallback(Bty_condition, Bty_affect!)
+
+Bnd_cb = CallbackSet(Aty_cb, Bty_cb)
+
+tspan = (0., 1e4)
+let pt
+for n = 1:length(θ₀_vec)
+	θ₀ = θ₀_vec[n]
+	ξ₀ = cos.(θ₀)/c(r₀, z₀)
+	ζ₀ = sin.(θ₀)/c(r₀, z₀)
+	u0 = [r₀, z₀, ξ₀, ζ₀]
+
+	function eikonal!(du, u, p, t)
+		r = u[1]
+		z = u[2]
+		ξ = u[3]
+		ζ = u[4]
+		du[1] = c(r, z)*ξ
+		du[2] = c(r, z)*ζ
+		du[3] = -∂cr(r, z)/c(r, z)^2
+		du[4] = -∂cz(r, z)/c(r, z)^2
+	end
+
+	prob = ODEProblem(eikonal!, u0, tspan)
+
+	sol = solve(prob, callback = Bnd_cb)
+	if n == 1
+		pt = plot(sol, vars = (1,2))
+	else
+		plot!(pt, sol, vars = (1,2))
+		if n == length(θ₀_vec)
+			display(pt)
+		end
+	end
+end
+end
+
+## Encapsulate

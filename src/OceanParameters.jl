@@ -2,7 +2,10 @@ module OceanParameters
 """
 	bottom_loss
 """
-function bottom_loss(θ₁; cₚ = 1.6e3, αₚ = 0.5, ρ₂ = 2e3, cₛ = 0., αₛ = 0.)
+function bottom_loss(θ₁;
+	f = 1e3,
+	c₁ = 1.5e3, α₁ = 0, ρ₁ = 1e3,
+	cₚ = 1.6e3, cₛ = 0., αₚ = 0.5, αₛ = 0., ρ₂ = 2e3)
 	# Functions
 	Wavelength(c, f) = c/f
 	Wavenumber(λ) = 2π/λ
@@ -13,13 +16,7 @@ function bottom_loss(θ₁; cₚ = 1.6e3, αₚ = 0.5, ρ₂ = 2e3, cₛ = 0., �
 	LossTangent(α_dbpwl) = α_dbpwl/(40π*log10(ℯ))
 	ComplexSoundSpeed(cᵣ, δ) = cᵣ/(1 - im*δ)
 
-	# Signal
-	f = 1e3
-
 	# Water
-	ρ₁ = 1e3
-	c₁ = 1.5e3
-	α₁ = 0
 	δ₁ = LossTangent(α₁)
 	ς₁ = ComplexSoundSpeed(c₁, δ₁)
 	λ₁ = Wavelength(ς₁, f)
@@ -49,6 +46,48 @@ function bottom_loss(θ₁; cₚ = 1.6e3, αₚ = 0.5, ρ₂ = 2e3, cₛ = 0., �
 	BL = -10log10(abs(ℛ)^2)
 
 	return BL
+end
+
+struct Sonar
+
+end
+
+struct Medium
+
+end
+
+struct Fluid <: Medium
+
+end
+
+struct Solid <: Medium
+	cₚ::Real
+	cₛ::Real
+	αₚ::Real
+	αₛ::Real
+	ρ₂::Real
+end
+
+function bottom_loss(θ₁, Sig::Sonar, Ocn::Fluid, Sed::Solid)
+	# Signal
+	f = Sig.f
+	
+	# Ocean
+	c₁ = Ocn.c
+	α₁ = Ocn.α
+	ρ₁ = Ocn.ρ
+
+	# Sediment
+	cₚ = Sed.cₚ
+	cₛ = Sed.cₛ
+	αₚ = Sed.αₚ
+	αₛ = Sed.αₛ
+	ρ₂ = Sed.ρ
+
+	BL = bottom_loss(θ₁;
+	f,
+	c₁, α₁, ρ₁,
+	cₚ, cₛ, αₚ, αₛ, ρ₂)
 end
 
 end
