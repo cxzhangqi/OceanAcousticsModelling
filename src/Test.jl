@@ -317,3 +317,32 @@ for n = 1:length(θ₀_vec)
 	end
 end
 end
+
+##
+using ForwardDiff
+
+struct Derivatives
+	f
+	∂f_∂x
+	∂f_∂y
+	function Derivatives(f)
+		f_(z) = f(z[1], z[2])
+		∇f(z) = ForwardDiff.gradient(f_, z)
+		∇f(x, y) = ∇f([x, y])
+		∂f_∂x(x, y) = ∇f(x, y)[1]
+		∂f_∂y(x, y) = ∇f(x, y)[2]
+		return new(f, ∂f_∂x, ∂f_∂x)
+	end
+end
+
+f(x,y) = x^2/sqrt(y)
+df = Derivatives(f)
+df.∂f_∂x(1, 2)
+
+##
+z₁ = 1e3
+cMin = 1500
+cMax = 1600
+c(z) = cMin + (cMax - cMin)*abs(z - z₁/2)/(z₁/2)
+z = range(0, z₁, length = 101)
+plot(z, c.(z))
