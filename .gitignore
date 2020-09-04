@@ -5,3 +5,4 @@ doc/*.fls
 doc/*.log
 doc/*.toc
 doc/*.synctex.gz
+doc/*_old

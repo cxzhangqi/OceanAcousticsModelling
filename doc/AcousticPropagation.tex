@@ -1,0 +1,79 @@
+\documentclass{tufte-book}
+\title{Acoustic Propagation Modelling}
+\author{Aaron Kaw}
+
+\input{C:/Users/aaron/OneDrive/Science/Programming/LaTeX/AaronLibrary.tex}
+
+\newcommand{\bty}{\text{bty}}
+\newcommand{\ati}{\text{ati}}
+\newcommand{\bnd}{\text{bnd}}
+\newcommand{\inc}{\text{inc}}
+\newcommand{\out}{\text{out}}
+\renewcommand{\max}{\text{max}}
+\renewcommand{\min}{\text{min}}
+
+\begin{document}
+\maketitle
+
+\part{Helmholtz Equation}
+Taken from Computational Ocean Acoustics\cite{jensen2011computational}.
+
+\A{
+	O(\omega^2): && \Abs{\nabla\tau}^2 &= \frac{1}{c^2(\vec{x})} \\
+	O(\omega^1): && 2\nabla\tau \cdot \nabla A_0 + \Par{\nabla^2\tau}A_0 &= 0 \\
+	O(\omega^{1 - j}): && 2\nabla\tau \cdot \nabla A_j + \Par{\nabla^2\tau}A_j &= -\nabla^2 A_{j-1}
+}
+
+\chapter{Eikonal Equation}
+The eikonal equation
+\A{
+	\Abs{\nabla\tau}^2 &= \frac{1}{c^2(\vec{x})}
+}
+is a first-order nonlinear PDE for modelling the path taken by a ray.
+
+\section{First-Order System}
+In cylindrical coordinates,
+\A{
+	\Dif{r}{s} &= c\xi(s) & \Dif{\xi}{s} &= \frac{-1}{c(r, z)^2} \Part{c}{r} \\
+	\Dif{z}{s} &= c\zeta(s) & \Dif{\zeta}{s} &= \frac{-1}{c(r, z)^2} \Part{c}{z} \\
+	\Dif{\tau}{s} &= \frac{1}{c(r, z)}
+}
+with initial conditions
+\A{
+	r &= r_0 & \xi &= \frac{\cos(\theta_0)}{c(r_0, z_0)} \\
+	z &= z_0 & \zeta &= \frac{\sin(\theta_0)}{c(r_0, z_0)} \\
+	\tau &= 0
+}
+and boundary conditions defined as reflection off the bathymetry $z_\bty(r)$ and altimetry $z_\ati(r)$.
+\A{
+	\theta_i &= c(r, z) \cos^{-1}\Par{\xi_i} \\
+	&= c(r, z) \sin^{-1}\Par{\zeta_i} \\
+	\theta_r &= 2\theta_\bnd - \theta_i \\
+	\xi_r &= \frac{\cos(\theta_r)}{c(r, z)} \\
+	\zeta_r &= \frac{\sin(\theta_r)}{c(r, z)}
+}
+
+\bibliographystyle{apalike}
+\bibliography{Prop}
+
+\part{Concocting Equations}
+\chapter{Celerity}
+\A{
+	c_\max &= 1600 \\
+	c_\min &= 1500 \\
+	c(r, z) &= c_0 + c_1 z + c_2 z^2 \\
+	c_0 + c_1 z_\ati + c_2 z_\ati^2 &= c(r, z_\ati) = c_\max \\
+	c_0 + c_1 \frac{z_\ati + z_\bty}{2} + c_2 \Par{\frac{z_\ati + z_\bty}{2}}^2 &= c(r, \frac{z_\ati + z_\bty}{2}) = c_\min \\
+	c_0 + c_1 z_\bty + c_2 z_\bty^2 &= c(r, z_\bty) = c_\max \\
+	\Matrix{ccc}{
+		1 & z_\ati & z_\ati^2 \\
+		1 & \frac{z_\ati + z_\bty}{2} & \Par{\frac{z_\ati + z_\bty}{2}}^2 \\
+		1 & z_\bty & z_\bty^2
+	} \Matrix{c}{
+		c_0 \\ c_1 \\ c_2
+	} &= \Matrix{c}{
+		c_\max \\ c_\min \\ c_\max
+	}
+}
+
+\end{document}
