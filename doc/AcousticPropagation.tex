@@ -53,11 +53,21 @@ and boundary conditions defined as reflection off the bathymetry $z_\bty(r)$ and
 	\zeta_r &= \frac{\sin(\theta_r)}{c(r, z)}
 }
 
+\chapter{Asymptotic Analysis}
+Repeated,
+\A{
+	O(\omega^2): && \Abs{\nabla\tau}^2 &= \frac{1}{c^2(\vec{x})} \\
+	O(\omega^1): && 2\nabla\tau \cdot \nabla A_0 + \Par{\nabla^2\tau}A_0 &= 0 \\
+	O(\omega^{1 - j}): && 2\nabla\tau \cdot \nabla A_j + \Par{\nabla^2\tau}A_j &= -\nabla^2 A_{j-1}
+}
+where the unknowns are $\tau(\vec{x})$ and $A_j(\vec{x})$ for $j = 0, 1, 2, ...$.
+
 \bibliographystyle{apalike}
 \bibliography{Prop}
 
-\part{Concocting Equations}
-\chapter{Celerity}
+\part{Appendix}
+\chapter{Concocting Equations}
+\section{Celerity}
 \A{
 	c_\max &= 1600 \\
 	c_\min &= 1500 \\
@@ -74,6 +84,20 @@ and boundary conditions defined as reflection off the bathymetry $z_\bty(r)$ and
 	} &= \Matrix{c}{
 		c_\max \\ c_\min \\ c_\max
 	}
+}
+
+\section{Bathymmetry}
+\A{
+	z_\min &= 700 \\
+	z_\max &= 1000 \\
+	r_0 &= 300 \\
+	z_\bty(r) &= z_\max - \Par{z_\max - z_\min}\exp\Par{-\frac{\Par{r - r_0}^2}{A_r}} \\
+	z_\bty\Par{\frac{r_0}{3}} &= z_\min + \frac{z_\min + z_\max}{10} = z_\max - \Par{z_\max - z_\min}\exp\Par{-\frac{\Par{r - r_0}^2}{A_r}} \\
+	z_\min + \frac{z_\min + z_\max}{10} &= z_\max - \Par{z_\max - z_\min}\exp\Par{-\frac{\Par{r - r_0}^2}{A_r}} \\
+	\Par{z_\max - z_\min}\exp\Par{-\frac{\Par{r - r_0}^2}{A_r}} &= z_\max - z_\min - \frac{z_\min + z_\max}{10} \\
+	\exp\Par{-\frac{\Par{r - r_0}^2}{A_r}} &= \frac{\dfrac{9}{10}z_\max - \dfrac{11}{10}z_\min}{z_\max - z_\min} \\
+	-\frac{\Par{r - r_0}^2}{A_r} &= \ln\Par{\dfrac{9z_\max- 11z_\min}{10\Par{z_\max - z_\min}}} \\
+	A_r &= \frac{4r_0^2/9}{\ln\Par{\dfrac{9z_\max- 11z_\min}{10\Par{z_\max - z_\min}}}}
 }
 
 \end{document}
