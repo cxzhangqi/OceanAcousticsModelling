@@ -346,3 +346,40 @@ cMax = 1600
 c(z) = cMin + (cMax - cMin)*abs(z - z₁/2)/(z₁/2)
 z = range(0, z₁, length = 101)
 plot(z, c.(z))
+
+##
+using LinearAlgebra
+
+function boundary_reflection(ξᵢ::Real, ζᵢ::Real, dzdr_bnd::Real, c)
+	t_rfl = boundary_reflection([ξᵢ, ζᵢ], [1, dzdr_bnd])
+	ξᵣ = t_rfl[1]/c
+	ζᵣ = t_rfl[2]/c
+	return ξᵣ, ζᵣ
+end
+function boundary_reflection(t_inc::Vector, t_bnd::Vector)
+	n_bnd = [-t_bnd[2], t_bnd[1]]
+	return t_rfl = t_inc - 2(t_inc ⋅ n_bnd)*n_bnd
+end
+
+θᵢ = -π/4
+θᵦ = 0
+tᵢ = [cos(θᵢ), sin(θᵢ)]
+tᵦ = [cos(θᵦ), sin(θᵦ)]
+tᵣ = boundary_reflection(tᵢ, tᵦ)
+@show rad2deg(atan(tᵣ[2]/tᵣ[1]))
+
+##
+fcn(x) = x[1], x[2]
+@show fcn([2, 3])./2
+
+##
+function Scenarios(Case::AbstractString)
+	if Case == "Hello"
+		println("Then I print hello.")
+	elseif Case == "Goodbye"
+		println("Alright, leave then.")
+	else
+		println("I don't understand.")
+	end
+end
+Scenarios("Hello")

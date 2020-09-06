@@ -9,11 +9,12 @@ begin
 	using Plots
 	using ForwardDiff
 	using DifferentialEquations
+	using LinearAlgebra
 end
 
 # ╔═╡ 93015d70-ee86-11ea-0d16-d30409dcf0fa
 begin
-	function BoundaryReflection(θᵢ, θᵦ)
+	function BoundaryReflection(θᵢ::Real, θᵦ::Real)
 		return θᵣ = 2θᵦ - θᵢ
 	end
 	function BoundaryReflection(ξᵢ, ζᵢ, ∂zBty∂r, c)
@@ -25,7 +26,17 @@ begin
 		θᵣ = BoundaryReflection(θᵢ, θᵦ)
 		ξᵣ = cos(θᵣ)/c
 		ζᵣ = sin(θᵣ)/c
+# 		return ξᵣ, ζᵣ
+		
+		# Reformulate
+		t_rfl = BoundaryReflection([ξᵢ, ζᵢ], [1, ∂zBty∂r])
+		ξᵣ = t_rfl[1]/c
+		ζᵣ = t_rfl[2]/c
 		return ξᵣ, ζᵣ
+	end
+	function BoundaryReflection(t_inc::Vector, t_bnd::Vector)
+		n_bnd = [-t_bnd[2], t_bnd[1]]
+		return t_rfl = t_inc - 2(t_inc ⋅ n_bnd)*n_bnd
 	end
 end
 
@@ -37,14 +48,36 @@ begin
 	rad2deg(θᵣ)
 end
 
+# ╔═╡ 010c9ca0-f038-11ea-3bd0-aff3eefdf6b9
+begin
+	t_inc = [cos(θᵢ), sin(θᵢ)]
+	t_bnd = [cos(θᵦ), sin(θᵦ)]
+	t_rfl = BoundaryReflection(t_inc, t_bnd)
+end
+
 # ╔═╡ 5aeff990-ee8c-11ea-3199-e36fd1e94941
 begin
 	xᵢ = [-sqrt(2)*cos(θᵢ), 0]
 	yᵢ = [sqrt(2)*sin(θᵢ), 0]
 	xᵣ = [0, sqrt(2)*cos(θᵣ)]
 	yᵣ = [0, sqrt(2)*sin(θᵣ)]
-	xᵦ = range(-1, 1, length = 2)
+	xᵦ = [-1, 1]
 	yᵦ = sin(θᵦ).*xᵦ
+end
+
+# ╔═╡ 0511dbc0-f039-11ea-03e5-fd352448614e
+begin
+# 	x_ᵢ = [-sqrt(2)*cos(θᵢ), 0]
+# 	y_ᵢ = [sqrt(2)*sin(θᵢ), 0]
+	x_ᵣ = [0, t_rfl[1]]
+	y_ᵣ = [0, t_rfl[2]]
+	
+	plot(aspect_ratio = 1,
+		xaxis = ("x", (-1, 1)),
+		yaxis = ("y", (-1, 1)))
+	plot!(xᵢ, yᵢ)
+	plot!(x_ᵣ, y_ᵣ)
+	plot!(xᵦ, yᵦ)
 end
 
 # ╔═╡ 8320abd0-ee8c-11ea-2ee9-952362b9e575
@@ -120,11 +153,11 @@ end
 
 # ╔═╡ 2fc217a0-eeb2-11ea-1ea3-6de33f348736
 begin
-	pt₀ = plot(rTemp, c₀, label = "c₀")
-	pt₁ = plot(rTemp, c₁, label = "c₁")
-	pt₂ = plot(rTemp, c₂, label = "c₂")
+	pt_c₀ = plot(rTemp, c₀, label = "c₀")
+	pt_c₁ = plot(rTemp, c₁, label = "c₁")
+	pt_c₂ = plot(rTemp, c₂, label = "c₂")
 	l_c = @layout [a; b; c]
-	plot(pt₀, pt₁, pt₂, layout = l_c)
+	plot(pt_c₀, pt_c₁, pt_c₂, layout = l_c)
 end
 
 # ╔═╡ 24825bd0-eeac-11ea-18f7-33e12b8812de
@@ -205,7 +238,7 @@ end
 begin
 	r₀ = 0
 	z₀ = (zAti(r₀) + zBty(r₀))/2
-	θ₀ = 0.9acos(c(r₀, z₀)/cMax)
+	θ₀ = 1.1acos(c(r₀, z₀)/cMax)
 end
 
 # ╔═╡ cfa55b40-eea0-11ea-211b-2d9c41d749d1
@@ -269,6 +302,8 @@ end
 # ╔═╡ Cell order:
 # ╠═ad471390-ee8c-11ea-0f90-a771df3ba437
 # ╠═93015d70-ee86-11ea-0d16-d30409dcf0fa
+# ╠═010c9ca0-f038-11ea-3bd0-aff3eefdf6b9
+# ╠═0511dbc0-f039-11ea-03e5-fd352448614e
 # ╠═324f8070-ee8a-11ea-071e-638691f85469
 # ╠═5aeff990-ee8c-11ea-3199-e36fd1e94941
 # ╠═8320abd0-ee8c-11ea-2ee9-952362b9e575

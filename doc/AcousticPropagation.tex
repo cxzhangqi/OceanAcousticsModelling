@@ -8,12 +8,15 @@
 \newcommand{\ati}{\text{ati}}
 \newcommand{\bnd}{\text{bnd}}
 \newcommand{\inc}{\text{inc}}
-\newcommand{\out}{\text{out}}
+\newcommand{\rfl}{\text{rfl}}
 \renewcommand{\max}{\text{max}}
 \renewcommand{\min}{\text{min}}
+\newcommand{\ray}{\text{ray}}
 
 \begin{document}
 \maketitle
+
+\tableofcontents
 
 \part{Helmholtz Equation}
 Taken from Computational Ocean Acoustics\cite{jensen2011computational}.
@@ -53,14 +56,10 @@ and boundary conditions defined as reflection off the bathymetry $z_\bty(r)$ and
 	\zeta_r &= \frac{\sin(\theta_r)}{c(r, z)}
 }
 
-\chapter{Asymptotic Analysis}
-Repeated,
+\chapter{Boundary Reflection}
 \A{
-	O(\omega^2): && \Abs{\nabla\tau}^2 &= \frac{1}{c^2(\vec{x})} \\
-	O(\omega^1): && 2\nabla\tau \cdot \nabla A_0 + \Par{\nabla^2\tau}A_0 &= 0 \\
-	O(\omega^{1 - j}): && 2\nabla\tau \cdot \nabla A_j + \Par{\nabla^2\tau}A_j &= -\nabla^2 A_{j-1}
+	\vec{t}_\rfl &= \vec{t}_\inc - 2\Par{\vec{t}_\inc \cdot \vec{n}_\bnd} \vec{n}_\bnd
 }
-where the unknowns are $\tau(\vec{x})$ and $A_j(\vec{x})$ for $j = 0, 1, 2, ...$.
 
 \bibliographystyle{apalike}
 \bibliography{Prop}
