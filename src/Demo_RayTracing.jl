@@ -39,8 +39,9 @@ z₀ = (zBty(r₀) + zAti(r₀))/2
 
 # Other
 S = 3e4 # Figure out how to replace with condition
+R = 2e4
 
-RaySols = AcousticPropagation.helmholtz_eikonal_transport.(θ₀, r₀, z₀, c, zAti, zBty, S)
+RaySols = AcousticPropagation.helmholtz_eikonal_transport.(θ₀, r₀, z₀, c, zAti, zBty, S, R)
 
 # let rangeMin = Inf, rangeMax = 0
 # 	for nRay = 1:length(RaySols)

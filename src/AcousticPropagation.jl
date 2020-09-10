@@ -1,7 +1,7 @@
 """
 	AcousticPropagation
 
-Calculates the sound field for a cylindrical slice of the ocean.
+Calculates the sound pressure field for a cylindrical slice of the ocean.
 
 TODO:
 1. Test ray tracing on scenarios.
@@ -30,7 +30,8 @@ using DifferentialEquations:
 ContinuousCallback,
 CallbackSet,
 ODEProblem,
-solve
+solve,
+terminate!
 # using LinearAlgebra
 # using ForwardDiff
 # using DifferentialEquations
@@ -49,13 +50,14 @@ end
 """
 	RaySol = helmholtz_eikonal_transport(θ₀, r₀, z₀, c, zAti, zBty, S)
 
-Calculates the ray path geometry, stored in `RaySol` for initial grazing angle `θ₀`, initial range `r₀`, initial depth `z₀`, sound ocean speed field `c`, ocean surface altimetry `zAti`, ocean bottom bathymetry `zBty` for a path of length `S`.
+Calculates the ray path geometry, stored in `RaySol` for initial grazing angle `θ₀`, initial range `r₀`, initial depth `z₀`, sound ocean speed field `c`, ocean surface altimetry `zAti`, ocean bottom bathymetry `zBty` for a path of length `S` (to be deprecated) and maximum range `R`.
 
 TODO:
+* Replace stopping condition
 * Calculate amplitude
 * Calculate pressure
 """
-function helmholtz_eikonal_transport(θ₀, r₀, z₀, c, zAti, zBty, S)
+function helmholtz_eikonal(θ₀, r₀, z₀, c, zAti, zBty, S, R)
 	c_(x) = c(x[1], x[2])
 	∇c_(x) = ForwardDiff.gradient(c_, x)
 	∇c(r, z) = ∇c_([r, z])
@@ -87,7 +89,7 @@ function helmholtz_eikonal_transport(θ₀, r₀, z₀, c, zAti, zBty, S)
 	ati_condition(u, t, ray) = zAti(u[1]) - u[2]
 	function ati_affect!(ray)
 		r = ray.u[1]
-		z = ray.u[2]
+		# z = ray.u[2]
 		ξᵢ = ray.u[3]
 		ζᵢ = ray.u[4]
 		ξᵣ, ζᵣ = boundary_reflection([ξᵢ, ζᵢ], [1, dzdrAti(r)])
@@ -100,7 +102,7 @@ function helmholtz_eikonal_transport(θ₀, r₀, z₀, c, zAti, zBty, S)
 	bty_condition(u, t, ray) = u[2] - zBty(u[1])
 	function bty_affect!(ray)
 		r = ray.u[1]
-		z = ray.u[2]
+		# z = ray.u[2]
 		ξᵢ = ray.u[3]
 		ζᵢ = ray.u[4]
 		ξᵣ, ζᵣ = boundary_reflection([ξᵢ, ζᵢ], [1, dzdrBty(r)])
@@ -109,15 +111,22 @@ function helmholtz_eikonal_transport(θ₀, r₀, z₀, c, zAti, zBty, S)
 	end
 	cb_bty = ContinuousCallback(bty_condition, bty_affect!)
 
-	cb_bnd = CallbackSet(cb_ati, cb_bty)
+	r_condition(u, t, ray) = R/2 - abs(u[1] - R/2)
+	r_affect!(ray) = terminate!(ray)
+	cb_range = ContinuousCallback(r_condition, r_affect!)
+
+	cb_bnd = CallbackSet(cb_ati, cb_bty, cb_range)
 
 	τ₀ = 0
 	ξ₀ = cos(θ₀)/c(r₀, z₀)
 	ζ₀ = sin(θ₀)/c(r₀, z₀)
 	u₀ = [r₀, z₀, ξ₀, ζ₀, τ₀]
+	# TLmax = 100
+	# S = 10^(TLmax/10)
 	tspan = (0., S)
 	prob = ODEProblem(eikonal!, u₀, tspan)
-	@time RaySol = solve(prob, callback = cb_bnd, save_everystep = false)
+	@time RaySol = solve(prob, 
+		callback = cb_bnd)
 	return RaySol
 end
 
