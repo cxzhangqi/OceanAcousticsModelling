@@ -1,8 +1,12 @@
+## Ray Tracing Demonstrations
+
+## Preamble
 using Plots
+using StaticArrays
 
 include("AcousticPropagation.jl")
 
-## Convergenze-Zone Propagation (soon)
+## Simple Scenario
 # Altimetry
 zAtiMin = -10
 zAtiMax = 50
@@ -12,7 +16,7 @@ zAti(r) = zAtiMin + (zAtiMax - zAtiMin)*(sin(r/1e3) + 1.)/2
 rPeak = 5e3
 rMax = 10e3
 zMax = 1e3
-zMin = 7e2
+zMin = 8e2
 Aᵣ = (2rPeak/3)^2/log((9zMax - 11zMin)/(10(zMax - zMin)))
 zBty(r) = zMax - (zMax - zMin)*exp(-(r - rPeak)^2/4e5)
 
@@ -34,13 +38,21 @@ z₀ = (zBty(r₀) + zAti(r₀))/2
 θ₀ = acos(c(r₀, z₀)/cMax).*(-1.5:0.5:1.5)
 
 # Other
-S = 2e4 # Figure out how to replace with condition
+S = 3e4 # Figure out how to replace with condition
 
 RaySols = AcousticPropagation.helmholtz_eikonal_transport.(θ₀, r₀, z₀, c, zAti, zBty, S)
 
-pt = plot(yaxis = :flip)
-plot!.(RaySols, vars = (1, 2))
-display(pt)
+let rangeMin = Inf, rangeMax = 0
+	for nRay = 1:length(RaySols)
+		rangeMin = min(rangeMin, minimum())
+		rangeMax = max(rangeMax, maximum())
+	end
+
+	pt = plot(yaxis = :flip)
+	plot!.(RaySols, vars = (1, 2))
+	
+	display(pt)
+end
 
 ## Convergenze-Zone Propagation
 function LineFcn(x₁, x₂, y₁, y₂)
@@ -50,7 +62,7 @@ end
 zAti(r) = 0.
 zBty(r) = 5e3
 function c(r, z)
-	zs = [0., 300., 1200., 2e3, 5000.]
+	zs = [0., 300., 1200., 2e3, 5000.]/1e3
 	cs = [1520, 1500, 1515, 1495, 1545.]
 	
 	n₋ = findlast(zs .≤ z)
@@ -65,9 +77,9 @@ function c(r, z)
 	return cFcn(z)
 end
 r₀ = 0.
-z₀ = 20.
+z₀ = 20/1e3
 θ₀ = atan(1/6)
-S = 140e3
+S = 140e3/1e3
 
 RaySols = AcousticPropagation.helmholtz_eikonal_transport(θ₀, r₀, z₀, c, zAti, zBty, S)
 

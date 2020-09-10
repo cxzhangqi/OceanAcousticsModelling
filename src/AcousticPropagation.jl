@@ -3,6 +3,17 @@
 
 Calculates the sound field for a cylindrical slice of the ocean.
 
+TODO:
+1. Test ray tracing on scenarios.
+	a. Change computation condition to range instead of arc length.
+	b. Create mature plotting function.
+	c. Convert to structs? Maybe later, for 2.0.
+2. Implement amplitude calculation.
+3. Produce pressure field output.
+4. Combine with sonar equations.
+5. Test pressure and TL field on scenarios.
+6. Create as formal Julia package 1.0 (or 0.1?) as proof of concept.
+
 Questions:
 * How to rename library
 * LinearAlgebra: dot doesn't work: `UndefVarError: ⋅ not defined`
@@ -11,7 +22,9 @@ Questions:
 module AcousticPropagation
 
 # Dependencies
-using LinearAlgebra: dot
+using StaticArrays
+# using LinearAlgebra: dot
+using LinearAlgebra
 using ForwardDiff: ForwardDiff
 using DifferentialEquations:
 ContinuousCallback,
@@ -29,10 +42,6 @@ Calculates the reflection vector `t_rfl` for a incident vector `t_inc` reflectin
 """
 function boundary_reflection(t_inc::Vector, t_bnd::Vector)
 	n_bnd = [-t_bnd[2], t_bnd[1]]
-	@show t_inc
-	@show typeof(t_inc)
-	@show n_bnd
-	@show typeof(n_bnd)
 	t_rfl = t_inc - 2(t_inc ⋅ n_bnd)*n_bnd
 	return t_rfl
 end
@@ -47,7 +56,6 @@ TODO:
 * Calculate pressure
 """
 function helmholtz_eikonal_transport(θ₀, r₀, z₀, c, zAti, zBty, S)
-	println(θ₀)
 	c_(x) = c(x[1], x[2])
 	∇c_(x) = ForwardDiff.gradient(c_, x)
 	∇c(r, z) = ∇c_([r, z])
@@ -68,16 +76,11 @@ function helmholtz_eikonal_transport(θ₀, r₀, z₀, c, zAti, zBty, S)
 		ξ = u[3]
 		ζ = u[4]
 		τ = u[5]
-		dr = c(r, z)*ξ
-		dz = c(r, z)*ζ
-		dξ = -∂c∂r(r, z)/c(r, z)^2
-		dζ = -∂c∂z(r, z)/c(r, z)^2
-		dτ = 1/c(r, z)
-		du[1] = dr
-		du[2] = dz
-		du[3] = dξ
-		du[4] = dζ
-		du[5] = dτ
+		du[1] = dr = c(r, z)*ξ
+		du[2] = dz = c(r, z)*ζ
+		du[3] = dξ = -∂c∂r(r, z)/c(r, z)^2
+		du[4] = dζ = -∂c∂z(r, z)/c(r, z)^2
+		du[5] = dτ = 1/c(r, z)
 	end
 
 	dzdrAti(r) = ForwardDiff.derivative(zAti, r)
@@ -114,7 +117,7 @@ function helmholtz_eikonal_transport(θ₀, r₀, z₀, c, zAti, zBty, S)
 	u₀ = [r₀, z₀, ξ₀, ζ₀, τ₀]
 	tspan = (0., S)
 	prob = ODEProblem(eikonal!, u₀, tspan)
-	@time RaySol = solve(prob, callback = cb_bnd)
+	@time RaySol = solve(prob, callback = cb_bnd, save_everystep = false)
 	return RaySol
 end
 
