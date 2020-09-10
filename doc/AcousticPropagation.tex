@@ -12,6 +12,17 @@
 \renewcommand{\max}{\text{max}}
 \renewcommand{\min}{\text{min}}
 \newcommand{\ray}{\text{ray}}
+\newcommand{\spn}{\text{spn}}
+\newcommand{\nse}{\text{nse}}
+\newcommand{\erf}{\text{erf}}
+\newcommand{\dtc}{\text{dtc}}
+\newcommand{\fal}{\text{fal}}
+\newcommand{\erfc}{\text{erfc}}
+
+\newcommand{\DT}{\text{DT}}
+\newcommand{\NL}{\text{NL}}
+\newcommand{\SL}{\text{SL}}
+\newcommand{\TL}{\text{TL}}
 
 \begin{document}
 \maketitle
@@ -61,6 +72,45 @@ and boundary conditions defined as reflection off the bathymetry $z_\bty(r)$ and
 	\vec{t}_\rfl &= \vec{t}_\inc - 2\Par{\vec{t}_\inc \cdot \vec{n}_\bnd} \vec{n}_\bnd
 }
 
+\chapter{Sonar Equations}
+\section{Detection Threshold}
+\subsection{Detection Index}
+The detection index is expressed as
+\A{
+	d &= \Par{\frac{\mu_\spn - \mu_\nse}{\sigma_\nse}}^2
+}
+For a Gaussian noise and signal-plus-noise with a non-fluctuating signal, note that $\sigma_\nse = \sigma_\spn$ so
+\A{
+	f_\nse(x) &= \frac{1}{\sqrt{2\pi\sigma_\nse^2}}\exp\Brace{\frac{-1}{2}\Par{\frac{x - \mu_\nse}{\sigma_\nse}}^2} \\
+	f_\spn(x) &= \frac{1}{\sqrt{2\pi\sigma_\nse^2}}\exp\Brace{\frac{-1}{2}\Par{\frac{x - \mu_\spn}{\sigma_\nse}}^2}
+}
+Their respective cumulative density functions are
+\A{
+	F_\nse(x) &= \frac{1}{2}\Brack{1 + \erf\Par{\frac{x - \mu_\nse}{\sqrt{2}\sigma_\nse}}} \\
+	F_\spn(x) &= \frac{1}{2}\Brack{1 + \erf\Par{\frac{x - \mu_\spn}{\sqrt{2}\sigma_\nse}}}
+}
+The probability of detection and probability of false alarm are defined via the point at which the two density values meet, integrated above as
+\A{
+	p_\dtc &= 1 - \frac{1}{2}\Brack{1 + \erf\Par{\frac{x - \mu_\spn}{\sqrt{2}\sigma_\nse}}}, &
+	p_\fal &= 1 - \frac{1}{2}\Brack{1 + \erf\Par{\frac{x - \mu_\nse}{\sqrt{2}\sigma_\nse}}} \\
+	\Rightarrow p_\dtc &= \frac{1}{2}\erfc\Par{\frac{x - \mu_\spn}{\sqrt{2}\sigma_\nse}}, & p_\fal &= \frac{1}{2}\erfc\Par{\frac{x - \mu_\nse}{\sqrt{2}\sigma_\nse}} \\
+	\Rightarrow x &= \mu_\spn + \sqrt{2}\sigma_\nse\erfc^{-1}\Par{2p_\dtc}, &
+	x &= \mu_\nse + \sqrt{2}\sigma_\nse\erf^{-1}\Par{2p_\fal}
+}
+So equating these expressions yields
+\A{
+	\mu_\spn + \sqrt{2}\sigma_\nse\erfc^{-1}\Par{2p_\dtc} &= \mu_\nse + \sqrt{2}\sigma_\nse\erfc^{-1}\Par{2p_\fal} \\
+	\Rightarrow \Par{\frac{\mu_\spn - \mu_\nse}{\sigma_\nse}}^2 &= 2\Brack{\erfc^{-1}\Par{2p_\fal} - \erfc^{-1}\Par{2p_\dtc}}^2
+}
+where the left hand side is the definition of the detection index. Thus,
+\A{
+	d &= 2\Brack{\erfc^{-1}\Par{2p_\fal} - \erfc^{-1}\Par{2p_\dtc}}^2
+}
+Rearranged,
+\A{
+	p_\dtc &= \frac{1}{2}\erfc\Par{\erfc^{-1}\Par{2p_\fal} - \sqrt{\frac{d}{2}}}
+}
+
 \bibliographystyle{apalike}
 \bibliography{Prop}
 
@@ -97,6 +147,13 @@ and boundary conditions defined as reflection off the bathymetry $z_\bty(r)$ and
 	\exp\Par{-\frac{\Par{r - r_0}^2}{A_r}} &= \frac{\dfrac{9}{10}z_\max - \dfrac{11}{10}z_\min}{z_\max - z_\min} \\
 	-\frac{\Par{r - r_0}^2}{A_r} &= \ln\Par{\dfrac{9z_\max- 11z_\min}{10\Par{z_\max - z_\min}}} \\
 	A_r &= \frac{4r_0^2/9}{\ln\Par{\dfrac{9z_\max- 11z_\min}{10\Par{z_\max - z_\min}}}}
+}
+
+\chapter{Sonar Equation Manipulation}
+\section{Calculating Probability of Detection}
+\A{
+	d &= Bt\Par{\frac{\SL - \TL}{B\NL}}^2 \\
+	p_\dtc &= \frac{1}{2}\erfc\Par{\sqrt{\frac{d}{2}} + \erfc^{-1}\Par{2p_\fal}}
 }
 
 \end{document}

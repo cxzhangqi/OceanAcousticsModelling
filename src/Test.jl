@@ -1,385 +1,89 @@
-## Ray Tracing
-using DifferentialEquations
-
-cMin = 1500
-cMax = 1600
-α = [0 0 1; 2.5e5 5e2 1; 1e6 1e3 1]\[cMax; cMin; cMax]
-c(r, z) = α[1]*z^2 + α[2]*z + α[3]
-# c(r, z) = 0. < z < 1e3 ? c_(r, z) : -c_(r, z)
-∂cz(r, z) = 2α[1]*z + α[2]
-∂cr(r, z) = 0.
-
-# Depth = range(0., 1e3, length = 100)
-# Speed = c.(0, Depth)
-
-# plot(Speed, Depth)
-
-r₀ = 0.
-z₀ = 750.
-# θ₀ = atan(10.0/9.1)
-θ₀_max = acos(c(r₀, z₀)/cMax)
-θ₀_vec = [-θ₀_max; 0; θ₀_max]
-
-tspan = (0., 1e4)
-let pt
-for n = 1:length(θ₀_vec)
-	θ₀ = θ₀_vec[n]
-	ξ₀ = cos.(θ₀)/c(r₀, z₀)
-	ζ₀ = sin.(θ₀)/c(r₀, z₀)
-	u0 = [r₀, z₀, ξ₀, ζ₀]
-
-	function eikonal!(du, u, p, t)
-		r = u[1]
-		z = u[2]
-		ξ = u[3]
-		ζ = u[4]
-		du[1] = c(r, z)*ξ
-		du[2] = c(r, z)*ζ
-		du[3] = -∂cr(r, z)/c(r, z)^2
-		du[4] = -∂cz(r, z)/c(r, z)^2
-	end
-
-	prob = ODEProblem(eikonal!, u0, tspan)
-
-	sol = solve(prob)
-	if n == 1
-		pt = plot(sol, vars = (1,2))
-	else
-		plot!(pt, sol, vars = (1,2))
-		if n == length(θ₀_vec)
-			display(pt)
-		end
-	end
-end
-end
-
-## Add Boundaries to Ray Trace
-using DifferentialEquations
-
-cMin = 1500
-cMax = 1600
-α = [0 0 1; 2.5e5 5e2 1; 1e6 1e3 1]\[cMax; cMin; cMax]
-c(r, z) = α[1]*z^2 + α[2]*z + α[3]
-# c(r, z) = 0. < z < 1e3 ? c_(r, z) : -c_(r, z)
-∂cz(r, z) = 2α[1]*z + α[2]
-∂cr(r, z) = 0.
-
-# Depth = range(0., 1e3, length = 100)
-# Speed = c.(0, Depth)
-
-# plot(Speed, Depth)
-
-r₀ = 0.
-z₀ = 250.
-# θ₀ = atan(10.0/9.1)
-θ₀_max = acos(c(r₀, z₀)/cMax)
-# θ₀_vec = [-θ₀_max; 0; θ₀_max]
-θ₀_vec = [-1.5; -1.0; 0.0; 1.0; 1.5].*θ₀_max
-
-# Boundaries
-# * Altimetry
-Aty_condition(u, t, integrator) = u[2]
-Aty_affect!(integrator) = integrator.u[4] *= -1
-Aty_cb = ContinuousCallback(Aty_condition, Aty_affect!)
-
-# * Bathymetry
-z_bty = 1e3
-Bty_condition(u, t, integrator) = u[2] - z_bty
-Bty_affect!(integrator) = integrator.u[4] *= -1
-Bty_cb = ContinuousCallback(Bty_condition, Bty_affect!)
-
-Bnd_cb = CallbackSet(Aty_cb, Bty_cb)
-
-tspan = (0., 1e4)
-let pt
-for n = 1:length(θ₀_vec)
-	θ₀ = θ₀_vec[n]
-	ξ₀ = cos.(θ₀)/c(r₀, z₀)
-	ζ₀ = sin.(θ₀)/c(r₀, z₀)
-	u0 = [r₀, z₀, ξ₀, ζ₀]
-
-	function eikonal!(du, u, p, t)
-		r = u[1]
-		z = u[2]
-		ξ = u[3]
-		ζ = u[4]
-		du[1] = c(r, z)*ξ
-		du[2] = c(r, z)*ζ
-		du[3] = -∂cr(r, z)/c(r, z)^2
-		du[4] = -∂cz(r, z)/c(r, z)^2
-	end
-
-	prob = ODEProblem(eikonal!, u0, tspan)
-
-	sol = solve(prob, callback = Bnd_cb)
-	if n == 1
-		pt = plot(sol, vars = (1,2))
-	else
-		plot!(pt, sol, vars = (1,2))
-		if n == length(θ₀_vec)
-			display(pt)
-		end
-	end
-end
-end
-
-## Encapsulate
-using DifferentialEquations, Plots
-
-"""
-	eikonal!(du, u, p, t)
-
-Eikonal equation for ray tracing.
-"""
-function eikonal!(du, u, p, t)
-	r = u[1]
-	z = u[2]
-	ξ = u[3]
-	ζ = u[4]
-	du[1] = c(r, z)*ξ
-	du[2] = c(r, z)*ζ
-	du[3] = -∂cr(r, z)/c(r, z)^2
-	du[4] = -∂cz(r, z)/c(r, z)^2
-end
-
-"""
-TODO:
-* Check initial depth is between bty and aty.
-* Implement automatic differentiation for sound speed profile
-"""
-function RayTrace(θ₀, c, Src, Bty, Aty)
-		ξ₀ = cos.(θ₀)/c(Src.r, Src.z)
-		ζ₀ = sin.(θ₀)/c(Src.r, Src.z)
-		u0 = [Src.r, Src.z, ξ₀, ζ₀]
-
-		# Boundaries
-		# * Altimetry
-		Aty_condition(u, t, integrator) = u[2] - Aty.z
-		Aty_affect!(integrator) = integrator.u[4] *= -1
-		Aty_cb = ContinuousCallback(Aty_condition, Aty_affect!)
-		
-		# * Bathymetry
-		Bty_condition(u, t, integrator) = u[2] - Bty.z
-		Bty_affect!(integrator) = integrator.u[4] *= -1
-		Bty_cb = ContinuousCallback(Bty_condition, Bty_affect!)
-		
-		Bnd_cb = CallbackSet(Aty_cb, Bty_cb)
-
-		tspan = (0., 1e4)
-		prob = ODEProblem(eikonal!, u0, tspan)
-
-		sol = solve(prob, callback = Bnd_cb)
-end
-
-struct Boundary
-	z
-end
-
-struct Entity
-	r
-	z
-end
-
-struct Medium
-	c
-	∂cz
-	∂cr
-end
-
-cMin = 1.5e3
-cMax = 1.6e3
-cz = [0 0 1; 2.5e5 5e2 1; 1e6 1e3 1.0]\[cMax; cMin; cMax]
-cr = log(2)/8e3
-c(r, z) = cMin + ((cz[1]*z^2 + cz[2]*z + cz[3]) - cMin)*exp(-cr*r)
-∂cz(r, z) = exp(-cr*r)*(2cz[1]*z + cz[2])
-∂cr(r, z) = -cr*exp(-cr*r)*((cz[1]*z^2 + cz[2]*z + cz[3]) - cMin)
-r₀ = 0.
-z₀ = 250.
-
-Bty = Boundary(1e3)
-Aty = Boundary(0.0)
-Src = Entity(r₀, z₀)
-Ocn = Medium(c, ∂cz, ∂cr)
-θ₀_max = acos(c(r₀, z₀)/cMax)
-θ₀_vec = [-1.5; -1; -0.5; 0.0; 0.5; 1.0; 1.5].*θ₀_max
-
-let pt
-for n = 1:length(θ₀_vec)
-	θ₀ = θ₀_vec[n]
-	RayPath = RayTrace(θ₀, c, Src, Bty, Aty)
-	if n == 1
-		pt = plot(RayPath,
-			vars = (1,2), 
-			xaxis = ("Range (m)"),
-			yaxis = ("Depth (m)", :flip))
-	else
-		plot!(pt, RayPath, vars = (1,2))
-		if n == length(θ₀_vec)
-			display(pt)
-		end
-	end
-end
-end
-
-## Range-independent (for now)
-using DifferentialEquations, Plots, ForwardDiff
-
-"""
-	eikonal!(du, u, p, t)
-
-Eikonal equation for ray tracing.
-"""
-function eikonal!(du, u, p, t)
-	r = u[1]
-	z = u[2]
-	ξ = u[3]
-	ζ = u[4]
-	du[1] = c(z)*ξ
-	du[2] = c(z)*ζ
-	du[3] = 0.
-	du[4] = -dcz(z)/c(z)^2
-end
-
-"""
-TODO:
-* Check initial depth is between bty and aty.
-* Implement automatic differentiation for sound speed profile
-"""
-function RayTrace(θ₀, c, Src, Bty, Aty)
-		ξ₀ = cos.(θ₀)/c(Src.z)
-		ζ₀ = sin.(θ₀)/c(Src.z)
-		u0 = [Src.r, Src.z, ξ₀, ζ₀]
-
-		# Boundaries
-		# * Altimetry
-		Aty_condition(u, t, integrator) = u[2] - Aty.z
-		Aty_affect!(integrator) = integrator.u[4] *= -1
-		Aty_cb = ContinuousCallback(Aty_condition, Aty_affect!)
-		
-		# * Bathymetry
-		Bty_condition(u, t, integrator) = u[2] - Bty.z
-		Bty_affect!(integrator) = integrator.u[4] *= -1
-		Bty_cb = ContinuousCallback(Bty_condition, Bty_affect!)
-		
-		Bnd_cb = CallbackSet(Aty_cb, Bty_cb)
-
-		tspan = (0., 1e4)
-		prob = ODEProblem(eikonal!, u0, tspan)
-
-		sol = solve(prob, callback = Bnd_cb)
-end
-
-struct Boundary
-	z
-end
-
-struct Entity
-	r
-	z
-end
-
-struct Medium
-	c
-	dcz
-end
-
-cMin = 1.5e3
-cMax = 1.6e3
-cz = [0 0 1; 2.5e5 5e2 1; 1e6 1e3 1.0]\[cMax; cMin; cMax]
-c(z) = cMin + ((cz[1]*z^2 + cz[2]*z + cz[3]) - cMin)
-# dcz(z) = 2cz[1]*z + cz[2]
-dcz(z) = ForwardDiff.derivative(c, z)
-r₀ = 0.
-z₀ = 250.
-
-Bty = Boundary(1e3)
-Aty = Boundary(0.0)
-Src = Entity(r₀, z₀)
-Ocn = Medium(c, dcz)
-θ₀_max = acos(c(z₀)/cMax)
-# θ₀_vec = [-1.5; -1; -0.5; 0.0; 0.5; 1.0; 1.5].*θ₀_max
-θ₀_vec = (-1.5:0.25:1.5).*θ₀_max
-
-let pt
-for n = 1:length(θ₀_vec)
-	θ₀ = θ₀_vec[n]
-	RayPath = RayTrace(θ₀, c, Src, Bty, Aty)
-	if n == 1
-		pt = plot(RayPath,
-			vars = (1,2), 
-			xaxis = ("Range (m)"),
-			yaxis = ("Depth (m)", :flip))
-	else
-		plot!(pt, RayPath, vars = (1,2))
-		if n == length(θ₀_vec)
-			display(pt)
-		end
-	end
-end
-end
-
-##
-using ForwardDiff
-
-struct Derivatives
-	f
-	∂f_∂x
-	∂f_∂y
-	function Derivatives(f)
-		f_(z) = f(z[1], z[2])
-		∇f(z) = ForwardDiff.gradient(f_, z)
-		∇f(x, y) = ∇f([x, y])
-		∂f_∂x(x, y) = ∇f(x, y)[1]
-		∂f_∂y(x, y) = ∇f(x, y)[2]
-		return new(f, ∂f_∂x, ∂f_∂x)
-	end
-end
-
-f(x,y) = x^2/sqrt(y)
-df = Derivatives(f)
-df.∂f_∂x(1, 2)
-
-##
-z₁ = 1e3
-cMin = 1500
-cMax = 1600
-c(z) = cMin + (cMax - cMin)*abs(z - z₁/2)/(z₁/2)
-z = range(0, z₁, length = 101)
-plot(z, c.(z))
-
 ##
 using LinearAlgebra
+include("AcousticPropagation.jl")
+# Altimetry
+zAtiMin = -10
+zAtiMax = 50
+zAti(r) = zAtiMin + (zAtiMax - zAtiMin)*(sin(r/1e3) + 1.)/2
 
-function boundary_reflection(ξᵢ::Real, ζᵢ::Real, dzdr_bnd::Real, c)
-	t_rfl = boundary_reflection([ξᵢ, ζᵢ], [1, dzdr_bnd])
-	ξᵣ = t_rfl[1]/c
-	ζᵣ = t_rfl[2]/c
-	return ξᵣ, ζᵣ
-end
-function boundary_reflection(t_inc::Vector, t_bnd::Vector)
-	n_bnd = [-t_bnd[2], t_bnd[1]]
-	return t_rfl = t_inc - 2(t_inc ⋅ n_bnd)*n_bnd
-end
+# Bathymetry
+rPeak = 5e3
+rMax = 10e3
+zMax = 1e3
+zMin = 7e2
+Aᵣ = (2rPeak/3)^2/log((9zMax - 11zMin)/(10(zMax - zMin)))
+zBty(r) = zMax - (zMax - zMin)*exp(-(r - rPeak)^2/4e5)
 
-θᵢ = -π/4
-θᵦ = 0
-tᵢ = [cos(θᵢ), sin(θᵢ)]
-tᵦ = [cos(θᵦ), sin(θᵦ)]
-tᵣ = boundary_reflection(tᵢ, tᵦ)
-@show rad2deg(atan(tᵣ[2]/tᵣ[1]))
+# Ocean
+cMin = 1500
+cMax = 1600
+C(r) = [1 zAti(r) zAti(r)^2
+	1 (zAti(r) + zBty(r))/2 ((zAti(r) + zBty(r))/2)^2
+	1 zBty(r) zBty(r)^2]
+c_(r) = C(r)\[cMax, cMin, cMax]
+c₀(r) = c_(r)[1]
+c₁(r) = c_(r)[2]
+c₂(r) = c_(r)[3]
+c(r, z) = c₀(r) + c₁(r)*z + c₂(r)*z^2
+
+# Initial Conditions
+r₀ = 0.
+z₀ = (zBty(r₀) + zAti(r₀))/2
+θ₀ = acos(c(r₀, z₀)/cMax).*(-1.5:0.5:1.5)
+
+# Other
+S = 2e4 # Figure out how to replace with condition
+
+RaySols = helmholtz_eikonal_transport.(θ₀, r₀, z₀, c, zAti, zBty, S)
+
+using Plots
+
+pt = plot(yaxis = :flip)
+plot!.(RaySols, vars = (1, 2))
+display(pt)
+
 
 ##
-fcn(x) = x[1], x[2]
-@show fcn([2, 3])./2
+using Images
+using FileIO
+SvpImg = load("img/SVP_ConvergenceZonePropagation.png")
+
+using Images
+using TestImages
+using FileIO
+img = testimage("mandrill")
 
 ##
-function Scenarios(Case::AbstractString)
-	if Case == "Hello"
-		println("Then I print hello.")
-	elseif Case == "Goodbye"
-		println("Alright, leave then.")
-	else
-		println("I don't understand.")
-	end
-end
-Scenarios("Hello")
+using Plots; gr()
+using SpecialFunctions
+using ColorSchemes
+
+B = 1.
+t = 1.
+SL = 52.
+NL = 5.
+p_fal = 1e-4
+
+c = 1500.
+f = 100.
+λ = c/f
+k = 2π/λ
+
+r₀ = 0.
+z₀ = 100.
+
+R(r, z) = sqrt.((r - r₀)^2 + (z - z₀)^2)
+p(r, z) = R(r, z)*exp(im*k*R(r, z))
+TL(r, z) = 10log10(abs(p(r, z)))
+
+d(r, z) = B*t*((SL - TL(r, z))/(B*NL))^2
+p_dtc(r, z) = erfc(erfcinv(2p_fal) - sqrt(d(r, z)/2))/2
+POD(r, z) = 100p_dtc(r, z)
+
+r = range(1., 1e3, length = 100)
+z = range(1., 400., length = 50)
+contour(r, z, POD,
+	fill = true,
+	seriescolor = :jet,
+	xaxis = "Range (m)",
+	yaxis = ("Depth (m)", :flip))

@@ -1,7 +1,9 @@
-## Replicate Bottom Loss Curves
-using Plots
+
+using Plots; pyplot()
 
 include("OceanParameters.jl")
+
+## Replicate Bottom Loss Curves
 
 θ₁ = π/4
 @show BL = OceanParameters.bottom_loss(θ₁)
@@ -9,7 +11,7 @@ include("OceanParameters.jl")
 l = @layout [a b; c d]
 θ₁ = deg2rad.(range(0, 90, length = 100))
 
-cₚ = [1550 1600 1800]
+cₚ = [1550. 1600. 1800.]
 Numθ₁ = length(θ₁)
 Numcₚ = length(cₚ)
 BL = zeros(AbstractFloat, (Numθ₁, Numcₚ))
@@ -19,7 +21,12 @@ for nθ₁ = 1:length(θ₁)
 	end
 end
 
-p1 = plot(rad2deg.(θ₁), BL)
+p1 = plot(rad2deg.(θ₁), BL,
+	xaxis = 0:30:90,
+	yaxis = ("Loss (dB)", 0:5:15),
+	label = cₚ,
+	legendtitle = "cₚ (m/s)",
+	legend = :bottomright)
 
 αₚ = [1. 0.5 0]
 Numθ₁ = length(θ₁)
@@ -31,7 +38,12 @@ for nθ₁ = 1:length(θ₁)
 	end
 end
 
-p2 = plot(rad2deg.(θ₁), BL)
+p2 = plot(rad2deg.(θ₁), BL,
+	xaxis = 0:30:90,
+	yaxis = 0:5:15,
+	label = αₚ,
+	legendtitle = "αₚ (dB/λ)",
+	legend = :bottomright)
 
 ρ₂ = [1.5e3 2e3 2.5e3]
 Numρ₂ = length(ρ₂)
@@ -42,7 +54,12 @@ for nθ₁ = 1:length(θ₁)
 	end
 end
 
-p3 = plot(rad2deg.(θ₁), BL)
+p3 = plot(rad2deg.(θ₁), BL,
+	xaxis = ("Grazing angle θ₁ (deg)", 0:30:90),
+	yaxis = ("Loss (dB)", 0:5:15),
+	label = ρ₂,
+	legendtitle = "ρ₂ (kg/m³)",
+	legend = :bottomright)
 
 cₛ = [6e2 4e2 2e2 0.0]
 Numcₛ = length(cₛ)
@@ -53,15 +70,19 @@ for nθ₁ = 1:length(θ₁)
 	end
 end
 
-p4 = plot(rad2deg.(θ₁), BL)
+p4 = plot(rad2deg.(θ₁), BL,
+	xaxis = ("Grazing angle θ₁ (deg)", 0:30:90),
+	yaxis = 0:5:15,
+	label = cₛ,
+	legendtitle = "cₛ (m/s)",
+	legend = :bottomright)
 
-plot(p1, p2, p3, p4, layout = l)
+plot(p1, p2, p3, p4,
+	layout = l,
+	supertitle = "Bottom Loss Variations" # doesn't work
+)
 
-## Replicate Sediment Bottom Loss Curves
-using Plots
-
-include("OceanParameters.jl")
-
+## Bottom Loss Types
 θ₁ = deg2rad.(range(0., 90., length = Int(1e3)))
 BottomTypes = ["Clay" "Silt" "Sand" "Gravel" "Moraine" "Chalk" "Limestone" "Basalt"]
 ρ₂ = [1.5e3 1.7e3 1.9e3 2e3 2.1e3 2.2e3 2.4e3 2.7e3]
@@ -80,8 +101,9 @@ for nBot = 1:NumBot
 end
 
 plot(rad2deg.(θ₁), BL,
-	ylabel = "Bottom Reflection Loss (dB)",
-	xlabel = "Grazing Angle (deg)",
+	title = "Bottom Loss Types",
+	yaxis = ("Bottom Reflection Loss (dB)", 0:5:20),
+	xaxis = ("Grazing Angle (deg)", 0:15:90),
 	label = BottomTypes,
 	ylims = (0, 20))
 
