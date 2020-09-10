@@ -42,17 +42,17 @@ S = 3e4 # Figure out how to replace with condition
 
 RaySols = AcousticPropagation.helmholtz_eikonal_transport.(θ₀, r₀, z₀, c, zAti, zBty, S)
 
-let rangeMin = Inf, rangeMax = 0
-	for nRay = 1:length(RaySols)
-		rangeMin = min(rangeMin, minimum())
-		rangeMax = max(rangeMax, maximum())
-	end
+# let rangeMin = Inf, rangeMax = 0
+# 	for nRay = 1:length(RaySols)
+# 		rangeMin = min(rangeMin, minimum())
+# 		rangeMax = max(rangeMax, maximum())
+# 	end
 
 	pt = plot(yaxis = :flip)
 	plot!.(RaySols, vars = (1, 2))
 	
 	display(pt)
-end
+# end
 
 ## Convergenze-Zone Propagation
 function LineFcn(x₁, x₂, y₁, y₂)
