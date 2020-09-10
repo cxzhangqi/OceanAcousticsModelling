@@ -1,11 +1,12 @@
-
-##
+## Demo: Sonar Equations
+# Demonstrate calculation of the sonar equations, with focus on signal excess and probability of detection.
 using Plots; gr()
 using SpecialFunctions
 using ColorSchemes
 
 include("SonarEquations.jl")
 
+## Simple Scenario
 B = 1. # bandwidth
 t = 1. # integration time
 SL = 52. # source level
@@ -46,7 +47,7 @@ pd = contour(r, z, d,
 
 pTL = contour(r, z, TL,
 	fill = true,
-	seriescolor = :jet,
+	seriescolor = cgrad(:jet, rev = true),
 	title = "TL (dB)",
 	yaxis = :flip)
 
@@ -68,3 +69,8 @@ l = @layout [a b; c d]
 
 plot(pd, pTL, pSE, pPOD,
 	layout = l)
+
+## Simple Lloyd's Mirror
+
+## Multipath Propagation
+

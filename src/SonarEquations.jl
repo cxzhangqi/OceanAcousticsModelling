@@ -17,7 +17,12 @@ end
 Calculates the detection index for a non-fluctuating signal in a Gaussian-distributed noise environment for a probability of detection `p_dtc` and probability of false alarm `p_fal`.
 """
 function detection_index_gaussian(p_dtc, p_fal)
-	d = 2(erfcinv(2p_dtc) - erfcinv(2p_fal))^2
+	if p_fal ≥ p_dtc
+		d = 0
+	else
+		d = 2(erfcinv(2p_dtc) - erfcinv(2p_fal))^2
+	end
+	return d
 end
 
 function detection_index_gaussian(SL, TL, NL, B, t)
