@@ -6,7 +6,7 @@ using StaticArrays
 
 include("AcousticPropagation.jl")
 
-## Simple Scenario
+## Demonstrative Scenario
 # Altimetry
 zAtiMin = -10
 zAtiMax = 50
@@ -38,52 +38,84 @@ z₀ = (zBty(r₀) + zAti(r₀))/2
 θ₀ = acos(c(r₀, z₀)/cMax).*(-1.5:0.5:1.5)
 
 # Other
-S = 3e4 # Figure out how to replace with condition
 R = 2e4
 
-RaySols = AcousticPropagation.helmholtz_eikonal_transport.(θ₀, r₀, z₀, c, zAti, zBty, S, R)
+RaySols = AcousticPropagation.helmholtz_eikonal.(θ₀, r₀, z₀, c, zAti, zBty, R)
 
-# let rangeMin = Inf, rangeMax = 0
-# 	for nRay = 1:length(RaySols)
-# 		rangeMin = min(rangeMin, minimum())
-# 		rangeMax = max(rangeMax, maximum())
-# 	end
+r = range(0, R, length = 301)
 
-	pt = plot(yaxis = :flip)
-	plot!.(RaySols, vars = (1, 2))
-	
-	display(pt)
-# end
+pt = plot(
+	legend = false,
+	xaxis = "Range (m)",
+	yaxis = ("Depth", :flip),
+	title = "Rays")
+plot!.(RaySols, vars = (1, 2),
+	color = RGB(0, 0.5, 1))
+plot!(r, zAti, color = :black)
+plot!(r, zBty, color = :black)
 
-## Convergenze-Zone Propagation
-function LineFcn(x₁, x₂, y₁, y₂)
-	y(x) = y₁ + (y₂ - y₁)/(x₂ - x₁)*(x - x₁)
-end
+display(pt)
 
-zAti(r) = 0.
-zBty(r) = 5e3
-function c(r, z)
-	zs = [0., 300., 1200., 2e3, 5000.]/1e3
-	cs = [1520, 1500, 1515, 1495, 1545.]
-	
-	n₋ = findlast(zs .≤ z)
-	n₊ = findfirst(z .< zs)
+## Uniformly Increasing Celerity
+zAtiVal = 0.
+zBtyVal = 5e3
+# zs = [0., 300., 1200., 2e3, 5e3]
+# cs = [1520, 1500, 1515, 1495, 1545.]
+# zs = [0, 5e3]
+# cs = [1500, 1600]
+# @show cMat = cat(zs, cs, dims = 2)
+cFcn(r, z) = 1500 + 100z/5e3
 
-	cMin = cs[n₋]
-	cMax = cs[n₊]
-	zMin = zs[n₋]
-	zMax = zs[n₊]
-	cFcn(z) = cMin + (cMax - cMin)*(z - zMin)*(zMax - zMin)
+r₀ = 0.0
+z₀ = 20.0
+θ₀ = deg2rad(10)
+# θ₀ = range(atan(5000/25e3), atan(5000/50e3), length = 5)
+# θ₀ = 5π/6
+R = 250e3
 
-	return cFcn(z)
-end
-r₀ = 0.
-z₀ = 20/1e3
-θ₀ = atan(1/6)
-S = 140e3/1e3
-
-RaySols = AcousticPropagation.helmholtz_eikonal_transport(θ₀, r₀, z₀, c, zAti, zBty, S)
+RaySols = AcousticPropagation.helmholtz_eikonal.(θ₀, r₀, z₀, cFcn, zAtiVal, zBtyVal, R)
 
 pt = plot(yaxis = :flip)
-plot!(RaySols, vars = (1, 2))
+plot!.(RaySols, vars = (1, 2))
+# scatter!(RaySols, vars = (1, 2))
 display(pt)
+
+##
+zs = [0., 300., 1200., 2e3, 5e3]
+cs = [1520, 1500, 1515, 1495, 1545.]
+
+itp = interpolate((zs,), cs, Gridded(Linear()))
+c(z) = itp(z)
+
+z = range(0, 5e3, length = 101)
+plot(z, c)
+
+## Convergence Zone Propagation
+zs = [0., 300., 1200., 2e3, 5e3]
+cs = [1520, 1500, 1515, 1495, 1545.]
+cMat = cat(zs, cs, dims = 2)
+
+r₀ = 0.0
+z₀ = 20.0
+θ₀ = deg2rad(10)
+R = 250e3
+
+zAtiVal = 0
+zBtyVal = 5e3
+
+RaySol = AcousticPropagation.helmholtz_eikonal(θ₀, r₀, z₀, cMat, zAtiVal, zBtyVal, R)
+
+pt = plot(yaxis = :flip)
+plot!(RaySol, vars = (1, 2))
+scatter!(RaySol, vars = (1, 2))
+display(pt)
+
+##
+zs = [0., 300., 1200., 2e3, 5e3]
+cs = [1520, 1500, 1515, 1495, 1545.]
+
+itp = interpolate((zs,), cs, Gridded(Linear()))
+c(z) = itp(z)
+
+z = range(0, 5e3, length = 101)
+plot(z, c)

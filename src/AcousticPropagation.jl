@@ -4,15 +4,23 @@
 Calculates the sound pressure field for a cylindrical slice of the ocean.
 
 TODO:
-1. Test ray tracing on scenarios.
+1. Divide into `problem` definition and `solving` definition for interaction with intermediate data, e.g. own plots of slice.
+	0. Copy.
+	a. Produce struct with multiple dispatch constructors to define environmental features.
+	b. Divide solving function.
+	c. Test on working
+2. Define mature plotting function.
+	a. Change output type to own struct `Ray`.
+	b. Extend base plotting function to plot with `Ray` input?
+3. Test ray tracing on scenarios.
 	a. Change computation condition to range instead of arc length.
 	b. Create mature plotting function.
 	c. Convert to structs? Maybe later, for 2.0.
-2. Implement amplitude calculation.
-3. Produce pressure field output.
-4. Combine with sonar equations.
-5. Test pressure and TL field on scenarios.
-6. Create as formal Julia package 1.0 (or 0.1?) as proof of concept.
+4. Implement amplitude calculation.
+5. Produce pressure field output.
+6. Combine with sonar equations.
+7. Test pressure and TL field on scenarios.
+8. Create as formal Julia package 1.0 (or 0.1?) as proof of concept.
 
 Questions:
 * How to rename library
@@ -22,6 +30,7 @@ Questions:
 module AcousticPropagation
 
 # Dependencies
+using Interpolations:LinearInterpolation
 using StaticArrays
 # using LinearAlgebra: dot
 using LinearAlgebra
@@ -50,14 +59,14 @@ end
 """
 	RaySol = helmholtz_eikonal_transport(θ₀, r₀, z₀, c, zAti, zBty, S)
 
-Calculates the ray path geometry, stored in `RaySol` for initial grazing angle `θ₀`, initial range `r₀`, initial depth `z₀`, sound ocean speed field `c`, ocean surface altimetry `zAti`, ocean bottom bathymetry `zBty` for a path of length `S` (to be deprecated) and maximum range `R`.
+Calculates the ray path geometry, stored in `RaySol` for initial grazing angle `θ₀` (rad), initial range `r₀`, initial depth `z₀`, sound ocean speed field `c`, ocean surface altimetry `zAti`, ocean bottom bathymetry `zBty` and maximum range `R`.
 
 TODO:
-* Replace stopping condition
+* Consider zero-range reflection for cylindrically symmetric environment
 * Calculate amplitude
 * Calculate pressure
 """
-function helmholtz_eikonal(θ₀, r₀, z₀, c, zAti, zBty, S, R)
+function helmholtz_eikonal(θ₀::Real, r₀::Real, z₀::Real, c::Function, zAti::Function, zBty::Function, R::Real)
 	c_(x) = c(x[1], x[2])
 	∇c_(x) = ForwardDiff.gradient(c_, x)
 	∇c(r, z) = ∇c_([r, z])
@@ -117,17 +126,97 @@ function helmholtz_eikonal(θ₀, r₀, z₀, c, zAti, zBty, S, R)
 
 	cb_bnd = CallbackSet(cb_ati, cb_bty, cb_range)
 
-	τ₀ = 0
+	τ₀ = 0.
 	ξ₀ = cos(θ₀)/c(r₀, z₀)
 	ζ₀ = sin(θ₀)/c(r₀, z₀)
 	u₀ = [r₀, z₀, ξ₀, ζ₀, τ₀]
-	# TLmax = 100
-	# S = 10^(TLmax/10)
+	TLmax = 100
+	S = 10^(TLmax/10)
 	tspan = (0., S)
 	prob = ODEProblem(eikonal!, u₀, tspan)
 	@time RaySol = solve(prob, 
 		callback = cb_bnd)
 	return RaySol
+end
+function helmholtz_eikonal(θ₀::Real, r₀::Real, z₀::Real, c, zAti, zBty, R::Real)
+	cFcn = parse_speed(c, R)
+	zAtiFcn = parse_boundary(zAti, R)
+	zBtyFcn = parse_boundary(zBty, R)
+	return helmholtz_eikonal(θ₀, r₀, z₀, cFcn, zAtiFcn, zBtyFcn, R)
+end
+# function helmholtz_eikonal(θ₀::Real, r₀::Real, z₀::Real, c::AbstractArray, zAti::AbstractArray, zBty::AbstractArray, R::Real)
+
+# 	itpBty = interpolate((zBty[:, 1],), zBty[:, 2], Gridded(Linear()))
+# 	zBtyFcn(r) = itpBty(r)
+
+# 	itpAti = interpolate((zAti[:, 1],), zAti[:, 2], Gridded(Linear()))
+# 	zAtiFcn(r) = itpAti(r)
+
+# 	return helmholtz_eikonal(θ₀, r₀, z₀, cFcn, zAtiFcn, zBtyFcn, R)
+# end
+# function helmholtz_eikonal(θ₀::Real, r₀::Real, z₀::Real, c::Real, zAti::Real, zBty::Real, R::Real)
+# 	println("Used dispatch!")
+# 	cFcn(r, z) = c
+# 	zAtiFcn(r) = zAti
+# 	zBtyFcn(r) = zBty
+# 	return helmholtz_eikonal(θ₀, r₀, z₀, cFcn, zAtiFcn, zBtyFcn, R)
+# end
+
+"""
+	parse_speed(c::AbstractArray)
+
+Available input types:
+* TODO
+"""
+function parse_speed(c::Function, R::Real)
+	return c
+end
+function parse_speed(c::AbstractArray, R::Real)
+	# Maybe use first element to indicate interpolation degree?
+	if size(c, 2) == 2
+		println("=== Interpolate 2 ===")
+		dep = c[:, 1]
+		pushfirst!(dep, -R)
+		push!(dep, 1.5R)
+		spd = c[:, 2]
+		pushfirst!(spd, spd[1])
+		push!(spd, spd[end])
+		itpSpd = LinearInterpolation((dep,), spd)
+		return cFcn(r, z) = itpSpd(z)
+		# cFcnTemp(z) = itpSpd(z)
+		# range = 
+		# plot()
+	elseif size(c, 2) > 2
+		# TODO:
+		# * Implement as vector of arrays.
+		# * First element is 
+	end
+end
+function parse_speed(c::Real, R::Real)
+	return cFcn(r, z) = c
+end
+
+"""
+	parse_boundary(zBnd)
+
+Available input types:
+* TODO
+"""
+function parse_boundary(zBnd::Function, R::Real)
+	return zBnd
+end
+function parse_boundary(zBnd::AbstractArray, R::Real)
+	rng = zBnd[:, 1]
+	pushfirst!(rng, -R)
+	push!(rng, 1.5R)
+	bnd = zBnd[:, 2]
+	pushfirst!(bnd, bnd[1])
+	push!(bnd, bnd[end])
+	itpBnd = interpolate((rng,), bnd, Gridded(Linear()))
+	return zBndFcn(r) = itpBnd(r)
+end
+function parse_boundary(zBnd::Real, R::Real)
+	return zBndFcn(r) = zBnd
 end
 
 end
