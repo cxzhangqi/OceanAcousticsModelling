@@ -14,10 +14,11 @@ It was then simple enough to replicate the bottom loss for various bottom sedime
 ![](img/BottomLoss_Types.png)
 
 ## Ray Tracing
-The Eikonal equation is solved using Julia's [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) using the time variable in the solvers for the arc-length. The equations are given as
-$
-\frac{dr}{ds} = c\xi(s)
-$
+The Eikonal equation is solved using Julia's [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) using the time variable in the solvers for the arc-length.
+
+This first example shows a Gaussian bathymetry and sinusoidal altimetry. The sound speed profile is also range-dependent as a parabola with maximums at the ocean boundaries, which shifts with the changing boundary depths.
+
+![](img/../RayTrace_FirstExample.png)
 
 ## References
 > <a name="JensenEtAl">[1]</a> Jensen, F. B., Kuperman, W. A., Porter, M. B., & Schmidt, H. (2011). Computational ocean acoustics. Springer Science & Business Media.

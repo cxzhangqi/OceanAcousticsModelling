@@ -56,6 +56,8 @@ plot!(r, zBty, color = :black)
 
 display(pt)
 
+savefig(pt, "RayTrace_FirstExample.png")
+
 ## Uniformly Increasing Celerity
 zAtiVal = 0.
 zBtyVal = 5e3
