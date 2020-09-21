@@ -83,8 +83,8 @@ f = 1e2
 λ = c/f
 r_src = 0.0
 z_src = 2λ
-r = range(0, 3e2, length = 1001)
-z = range(0, 10λ, length = 501)
+r = range(0, 3e2, length = 201)
+z = range(0, 10λ, length = 101)
 zTemp = 5λ
 
 TL(r, z) = LloydsMirror.lloydsmirror_singlereflection.(c, f, r_src, r, z_src, z)
@@ -121,6 +121,9 @@ pt = plot(pTL, pd, pSE, pPOD,
 	layout = l)
 
 savefig(pt, "img/SonarEqs_LloydsMirror.png")
+
+heatmap(r, z, DT,
+	yaxis = :flip)
 
 ## Multipath Propagation
 
