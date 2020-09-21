@@ -363,8 +363,7 @@ begin
 	plot!(r, zAti, label = "Altimetry")
 	plot!(r, zBty, label = "Bathymetry")
 	for nRay = 1:length(rays)
-		LaunchingAngle = rays[nRay].θ₀
-		plot!(rays[nRay].Sol, vars = (1, 2), label = "θ₀ = $LaunchingAngle")
+		plot!(rays[nRay].Sol, vars = (1, 2), label = "")
 	end
 	pt
 end

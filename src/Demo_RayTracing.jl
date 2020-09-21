@@ -10,6 +10,7 @@ include("AcousticPropagation.jl")
 zAtiMin = -10
 zAtiMax = 50
 zAti(r) = zAtiMin + (zAtiMax - zAtiMin)*(sin(r/1e3) + 1.)/2
+ati = AcousticPropagation.Boundary(zAti)
 
 # Bathymetry
 rPeak = 5e3
@@ -18,6 +19,7 @@ zMax = 1e3
 zMin = 8e2
 Aᵣ = (2rPeak/3)^2/log((9zMax - 11zMin)/(10(zMax - zMin)))
 zBty(r) = zMax - (zMax - zMin)*exp(-(r - rPeak)^2/4e5)
+bty = AcousticPropagation.Boundary(zBty)
 
 # Ocean
 cMin = 1500
@@ -30,29 +32,25 @@ c₀(r) = c_(r)[1]
 c₁(r) = c_(r)[2]
 c₂(r) = c_(r)[3]
 c(r, z) = c₀(r) + c₁(r)*z + c₂(r)*z^2
+ocn = AcousticPropagation.Medium(c, rMax)
 
 # Initial Conditions
 r₀ = 0.
 z₀ = (zBty(r₀) + zAti(r₀))/2
-θ₀ = acos(c(r₀, z₀)/cMax).*(-1.5:0.5:1.5)
+src = AcousticPropagation.Entity.(r₀, z₀)
 
-# Other
-R = 2e4
+θ₀ = acos(c(r₀, z₀)/cMax).*(-1.5:0.125:1.5)
+rays = AcousticPropagation.Ray.(θ₀, src, ocn, bty, ati)
 
-RaySols = AcousticPropagation.helmholtz_eikonal.(θ₀, r₀, z₀, c, zAti, zBty, R)
-
-r = range(0, R, length = 301)
-
-pt = plot(
-	legend = false,
-	xaxis = "Range (m)",
-	yaxis = ("Depth", :flip),
-	title = "Rays")
-plot!.(RaySols, vars = (1, 2),
-	color = RGB(0, 0.5, 1))
-plot!(r, zAti, color = :black)
-plot!(r, zBty, color = :black)
-
+println("Now plotting.")
+pt = plot(yaxis = :flip)
+r = range(0, rMax, length = 100)
+# z = range(zAtiMin, zMax, length = 51)
+plot!(r, zAti, label = "Altimetry")
+plot!(r, zBty, label = "Bathymetry")
+for nRay = 1:length(rays)
+	plot!(rays[nRay].Sol, vars = (1, 2), label = "")
+end
 display(pt)
 
 savefig(pt, "img/RayTrace_FirstExample.png")
