@@ -27,7 +27,9 @@ I had some rays start at the critical angle which would yield turning points at 
 I still need to perform a few more tests to see if this ray-tracing implementation is "valid" or accurate.
 
 ## Receiver Operating Characterisics Curves
-Receiver operating charactistics (ROC) curves illustrate the relationship between the probabilities of detection and false alarm in detection theory. The ROC curves for a Gaussian-distributed noise and non-fluctuating signal are replicated here.
+Receiver operating charactistics (ROC) curves illustrate the relationship between the probabilities of detection and false alarm in detection theory. The theory is taken from Dawe [[2]](#Dawe)
+
+The ROC curves for a Gaussian-distributed noise and non-fluctuating signal are replicated here.
 
 ![](img/DetectionIndex_Gaussian.png)
 
@@ -46,3 +48,5 @@ Might change the `contour` plots to `pcolor` plots.
 
 ## References
 > <a name="JensenEtAl">[1]</a> Jensen, F. B., Kuperman, W. A., Porter, M. B., & Schmidt, H. (2011). Computational ocean acoustics. Springer Science & Business Media.
+
+> <a name="Dawe">[2]</a> Dawe, R. L. (1997). Detection threshold modelling explained (No. DSTO-TR-0586). DEFENCE SCIENCE AND TECHNOLOGY ORGANISATION CANBERRA (AUSTRALIA).
