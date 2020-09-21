@@ -6,7 +6,7 @@ using InteractiveUtils
 
 # ╔═╡ 5934500e-fbe3-11ea-3ea2-e7f2c1cf9359
 begin
-	using Plots
+	using Plots; gr()
 	using ForwardDiff
 	using DifferentialEquations
 	using LinearAlgebra
@@ -150,6 +150,12 @@ end
 md"#### Ocean Sound Speed"
 
 # ╔═╡ cb5709b0-fbdb-11ea-1d9b-375f555a2a8f
+"""
+	Medium(c, R)
+
+`c(r, z)`    sound speed at range `r` and depth `z`
+`R`          maximum range of slice
+"""
 struct Medium
 	c::Function
 	∂c∂r::Function
@@ -185,13 +191,17 @@ begin
 	pc = heatmap(r, z, ocn.c,
 		yaxis = (:flip, raw"$z$"),
 		title = "Celerity")
-	plot!(r, zBty, color = :red, label = "Bathymetry")
-	plot!(r, zAti, color = :white, label = "Altimetry")
+	plot!(r, zBty, color = :red, label = "")
+	plot!(r, zAti, color = :white, label = "")
 	pdcr = heatmap(r, z, ocn.∂c∂r,
 		yaxis = (:flip, raw"$z$"))
+	plot!(r, zBty, color = :red, label = "")
+	plot!(r, zAti, color = :white, label = "")
 	pdcz = heatmap(r, z, ocn.∂c∂z,
 		yaxis = (:flip, raw"$z$"),
 		xaxis = raw"$r$")
+	plot!(r, zBty, color = :red, label = "Bathymetry")
+	plot!(r, zAti, color = :white, label = "Altimetry")
 	
 	lc = @layout [a; b; c]
 	plot(pc, pdcr, pdcz, layout = lc)
@@ -220,10 +230,23 @@ end
 md"#### Sound Source"
 
 # ╔═╡ bcdf3810-fbfb-11ea-015c-998ab7c3d380
+"""
+	Entity(r, z, θ)
+
+`r`    range of entity
+`z`    depth of entity
+`θ`    angle of ray
+"""
 struct Entity
 	r::Real
 	z::Real
-	θ::Real
+end
+
+# ╔═╡ 84f01650-fc0e-11ea-2861-079e697543db
+begin
+	r₀ = 0.0
+	z₀ = (zBty(r₀) + zAti(r₀))/2
+	src = Entity.(r₀, z₀)
 end
 
 # ╔═╡ 0ca4cd90-fc03-11ea-3d70-03cf319100f2
@@ -237,6 +260,7 @@ md"### Problem"
 
 # ╔═╡ 3d33d420-fbe9-11ea-3bc2-bd9475b53a2e
 function acoustic_propagation_problem(
+		θ₀::Real,
 		Src::Entity,
 		Ocn::Medium,
 		Bty::Boundary,
@@ -264,8 +288,8 @@ function acoustic_propagation_problem(
 	
 	r₀ = Src.r
 	z₀ = Src.z
-	ξ₀ = cos(Src.θ)/Ocn.c(r₀, z₀)
-	ζ₀ = sin(Src.θ)/Ocn.c(r₀, z₀)
+	ξ₀ = cos(θ₀)/Ocn.c(r₀, z₀)
+	ζ₀ = sin(θ₀)/Ocn.c(r₀, z₀)
 	τ₀ = 0.
 	u₀ = [r₀, z₀, ξ₀, ζ₀, τ₀]
 	
@@ -287,6 +311,17 @@ function solve_acoustic_propagation(prob_eikonal, CbBnd)
 	return RaySol
 end
 
+# ╔═╡ d268f650-fc0d-11ea-151e-fd59c8065050
+struct Ray
+	θ₀
+	Sol
+	function Ray(θ₀, Src::Entity, Ocn::Medium, Bty::Boundary, Ati::Boundary)
+		Prob, CbBnd = acoustic_propagation_problem(θ₀, Src, Ocn, Bty, Ati)
+		Sol = solve_acoustic_propagation(Prob, CbBnd)
+		return new(θ₀, Sol)
+	end
+end
+
 # ╔═╡ 6bf42d00-fc02-11ea-0cc1-27333ef247b9
 md"""
 ### Single Ray
@@ -295,24 +330,15 @@ Here we demonstrate the working code for a single ray.
 
 # ╔═╡ a9618660-fbfd-11ea-0c25-3bdaf8e181d2
 begin
-	r₀ = 0.0
-	z₀ = (zBty(r₀) + zAti(r₀))/2
-# 	θ₀ = acos(c(r₀, z₀)/cMax).*(-1.5:0.5:1.5)
 	θ₀ = acos(c(r₀, z₀)/cMax)
-	src = Entity.(r₀, z₀, θ₀)
+	ray = Ray(θ₀, src, ocn, bty, ati)
 end
 
-# ╔═╡ 9120e04e-fbfd-11ea-3c0f-39e4832d4e60
-prob_eikonal, CbBnd = acoustic_propagation_problem(src, ocn, bty, ati)
-
-# ╔═╡ 72190a10-fbfe-11ea-3cde-df567ac2faf8
-RaySol = solve_acoustic_propagation(prob_eikonal, CbBnd)
-
-# ╔═╡ 043ced0e-fc01-11ea-2709-2f9ab7acb5bc
+# ╔═╡ bbc9d5d0-fc0e-11ea-0187-a3a914b19d12
 begin
-	plot(RaySol, vars = (1, 2), yaxis = :flip, label = "")
+	plot(r, zAti, label = "Altimetry")
 	plot!(r, zBty, label = "Bathymetry")
-	plot!(r, zAti, label = "Altimetry")
+	plot!(ray.Sol, vars = (1, 2), yaxis = :flip, label = "")
 end
 
 # ╔═╡ 5c903430-fc02-11ea-28fd-df2119a5b104
@@ -321,14 +347,27 @@ md"""
 Next we demonstrate the working code for multiple rays. Hopefully this can work via broadcasting.
 """
 
-# ╔═╡ aa0742a0-fc05-11ea-2c6d-ad9c2e053687
-srcs = Entity.(r₀, z₀, θ₀.*(-1.5:0.5:1.5))
+# ╔═╡ 5ac1f0f0-fc0f-11ea-0d9f-d17ef57c699c
+begin
+	Base.broadcastable(m::Entity) = Ref(m)
+	Base.broadcastable(m::Medium) = Ref(m)
+	Base.broadcastable(m::Boundary) = Ref(m)
+end
 
-# ╔═╡ bd38be30-fc05-11ea-218b-758744afb70b
-probs_eikonal, = acoustic_propagation_problem.(srcs, ocn, bty, ati)
+# ╔═╡ 08d817b0-fc0f-11ea-375d-4154a74e15ef
+rays = Ray.(θ₀.*(-1.5:0.125:1.5), src, ocn, bty, ati)
 
-# ╔═╡ e9aac3a0-fc05-11ea-159b-81da45264514
-RaySols = solve_acoustic_propagation.(probs_eikonal, CbBnd)
+# ╔═╡ 72debb50-fc0f-11ea-2192-77bcc5c839f0
+begin
+	pt = plot(yaxis = :flip)
+	plot!(r, zAti, label = "Altimetry")
+	plot!(r, zBty, label = "Bathymetry")
+	for nRay = 1:length(rays)
+		LaunchingAngle = rays[nRay].θ₀
+		plot!(rays[nRay].Sol, vars = (1, 2), label = "θ₀ = $LaunchingAngle")
+	end
+	pt
+end
 
 # ╔═╡ Cell order:
 # ╟─80a89f0e-fc02-11ea-3924-a11494022a97
@@ -354,17 +393,17 @@ RaySols = solve_acoustic_propagation.(probs_eikonal, CbBnd)
 # ╠═fcc629b0-fc06-11ea-3eaa-adf50eadbce0
 # ╟─19e1f950-fc04-11ea-1287-5b8d3307de12
 # ╠═bcdf3810-fbfb-11ea-015c-998ab7c3d380
+# ╠═84f01650-fc0e-11ea-2861-079e697543db
 # ╟─0ca4cd90-fc03-11ea-3d70-03cf319100f2
 # ╟─4d44d700-fc03-11ea-1914-e30845160f20
 # ╠═3d33d420-fbe9-11ea-3bc2-bd9475b53a2e
 # ╟─3e7f8f30-fc03-11ea-0f07-bd4c7b8e7ce2
 # ╠═78232bd0-fbfd-11ea-0de5-7fb83321c1f0
-# ╠═6bf42d00-fc02-11ea-0cc1-27333ef247b9
+# ╠═d268f650-fc0d-11ea-151e-fd59c8065050
+# ╟─6bf42d00-fc02-11ea-0cc1-27333ef247b9
 # ╠═a9618660-fbfd-11ea-0c25-3bdaf8e181d2
-# ╠═9120e04e-fbfd-11ea-3c0f-39e4832d4e60
-# ╠═72190a10-fbfe-11ea-3cde-df567ac2faf8
-# ╠═043ced0e-fc01-11ea-2709-2f9ab7acb5bc
+# ╠═bbc9d5d0-fc0e-11ea-0187-a3a914b19d12
 # ╟─5c903430-fc02-11ea-28fd-df2119a5b104
-# ╠═aa0742a0-fc05-11ea-2c6d-ad9c2e053687
-# ╠═bd38be30-fc05-11ea-218b-758744afb70b
-# ╠═e9aac3a0-fc05-11ea-159b-81da45264514
+# ╠═5ac1f0f0-fc0f-11ea-0d9f-d17ef57c699c
+# ╠═08d817b0-fc0f-11ea-375d-4154a74e15ef
+# ╠═72debb50-fc0f-11ea-2192-77bcc5c839f0
