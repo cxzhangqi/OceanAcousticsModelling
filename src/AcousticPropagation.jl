@@ -4,11 +4,8 @@
 Calculates the sound pressure field for a cylindrical slice of the ocean.
 
 TODO:
-DONE: Divide into `problem` definition and `solving` definition for interaction with intermediate data, e.g. own plots of slice.
-	0. Copy.
-	a. Produce struct with multiple dispatch constructors to define environmental features.
-	b. Divide solving function.
-	c. Test on working
+1. Provide multiple dispatch constructors for the range/depth dependent environment variables.
+	a. Test.
 2. Define mature plotting function.
 	a. Change output type to own struct `Ray`.
 	b. Extend base plotting function to plot with `Ray` input?
@@ -24,7 +21,6 @@ DONE: Divide into `problem` definition and `solving` definition for interaction 
 
 Questions:
 * How to rename library
-* LinearAlgebra: dot doesn't work: `UndefVarError: ⋅ not defined`
 * How to do tests for varying parameters?
 """
 module AcousticPropagation
@@ -106,40 +102,40 @@ function acoustic_propagation_problem(
 	Bty::Boundary,
 	Ati::Boundary)
 
-function eikonal!(du, u, p, s)
-	r = u[1]
-	z = u[2]
-	ξ = u[3]
-	ζ = u[4]
-	τ = u[5]
-	du[1] = dr = Ocn.c(r, z)*ξ
-	du[2] = dz = Ocn.c(r, z)*ζ
-	du[3] = dξ = -Ocn.∂c∂r(r, z)/Ocn.c(r, z)^2
-	du[4] = dζ = -Ocn.∂c∂z(r, z)/Ocn.c(r, z)^2
-	du[5] = dτ = 1/Ocn.c(r, z)
-end
+	function eikonal!(du, u, p, s)
+		r = u[1]
+		z = u[2]
+		ξ = u[3]
+		ζ = u[4]
+		τ = u[5]
+		du[1] = dr = Ocn.c(r, z)*ξ
+		du[2] = dz = Ocn.c(r, z)*ζ
+		du[3] = dξ = -Ocn.∂c∂r(r, z)/Ocn.c(r, z)^2
+		du[4] = dζ = -Ocn.∂c∂z(r, z)/Ocn.c(r, z)^2
+		du[5] = dτ = 1/Ocn.c(r, z)
+	end
 
-rng_condition(u, t, ray) = Ocn.R/2 - abs(u[1] - Ocn.R/2)
-rng_affect!(ray) = terminate!(ray)
-CbRng = ContinuousCallback(rng_condition, rng_affect!)
-CbBty = ContinuousCallback(Bty.condition, Bty.affect!)
-CbAti = ContinuousCallback(Ati.condition, Ati.affect!)
-CbBnd = CallbackSet(CbRng, CbBty, CbAti)
+	rng_condition(u, t, ray) = Ocn.R/2 - abs(u[1] - Ocn.R/2)
+	rng_affect!(ray) = terminate!(ray)
+	CbRng = ContinuousCallback(rng_condition, rng_affect!)
+	CbBty = ContinuousCallback(Bty.condition, Bty.affect!)
+	CbAti = ContinuousCallback(Ati.condition, Ati.affect!)
+	CbBnd = CallbackSet(CbRng, CbBty, CbAti)
 
-r₀ = Src.r
-z₀ = Src.z
-ξ₀ = cos(θ₀)/Ocn.c(r₀, z₀)
-ζ₀ = sin(θ₀)/Ocn.c(r₀, z₀)
-τ₀ = 0.
-u₀ = [r₀, z₀, ξ₀, ζ₀, τ₀]
+	r₀ = Src.r
+	z₀ = Src.z
+	ξ₀ = cos(θ₀)/Ocn.c(r₀, z₀)
+	ζ₀ = sin(θ₀)/Ocn.c(r₀, z₀)
+	τ₀ = 0.
+	u₀ = [r₀, z₀, ξ₀, ζ₀, τ₀]
 
-TLmax = 100
-S = 10^(TLmax/10)
-sSpan = (0., S)
+	TLmax = 100
+	S = 10^(TLmax/10)
+	sSpan = (0., S)
 
-prob_eikonal = ODEProblem(eikonal!, u₀, sSpan)
+	prob_eikonal = ODEProblem(eikonal!, u₀, sSpan)
 
-return prob_eikonal, CbBnd
+	return prob_eikonal, CbBnd
 end
 
 function solve_acoustic_propagation(prob_eikonal, CbBnd)

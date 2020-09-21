@@ -63,7 +63,7 @@ zBtyVal = 5e3
 # zs = [0, 5e3]
 # cs = [1500, 1600]
 # @show cMat = cat(zs, cs, dims = 2)
-cFcn(r, z) = 1500 + 100z/5e3
+cFcn(r, z) = 1500 + 100(z - zAtiVal)/(zBtyVal - zAtiVal)
 
 r₀ = 0.0
 z₀ = 20.0
