@@ -67,8 +67,10 @@ pPOD = contour(r, z, POD,
 
 l = @layout [a b; c d]
 
-plot(pd, pTL, pSE, pPOD,
+pt = plot(pd, pTL, pSE, pPOD,
 	layout = l)
+
+savefig(pt, "img/SonarEqs_SimplePropagation.png")
 
 ## Simple Lloyd's Mirror
 
