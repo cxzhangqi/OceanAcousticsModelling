@@ -78,9 +78,7 @@ p4 = plot(rad2deg.(θ₁), BL,
 	legend = :bottomright)
 
 pt = plot(p1, p2, p3, p4,
-	layout = l,
-	supertitle = "Bottom Loss Variations" # doesn't work
-)
+	layout = l)
 
 savefig(pt, "img/BottomLoss_Parameters.png")
 
