@@ -6,7 +6,7 @@ using ColorSchemes
 
 include("SonarEquations.jl")
 
-## Simple Scenario
+## Single Propagation
 B = 1. # bandwidth
 t = 1. # integration time
 SL = 52. # source level
@@ -22,8 +22,8 @@ r₀ = 0. # source range
 z₀ = 100. # source depth
 
 R(r, z) = sqrt.((r - r₀)^2 + (z - z₀)^2) # distance from source
-p(r, z) = R(r, z)*exp(im*k*R(r, z)) # complex pressure
-TL(r, z) = 10log10(abs(p(r, z))) # transmission loss
+p(r, z) = R(r, z)\exp(im*k*R(r, z)) # complex pressure
+TL(r, z) = -10log10(abs(p(r, z))) # transmission loss
 DI = 20 # directivity index
 # DT(r, z) = 5log10(d(r, z)*B/t)
 DT(r, z) = SonarEquations.detection_threshold(d(r, z), B, t)
@@ -39,17 +39,17 @@ POD(r, z) = 100SonarEquations.probability_of_detection_gaussian(d(r, z), p_fal)
 r = range(1., 1e3, length = 100)
 z = range(1., 400., length = 50)
 
-pd = contour(r, z, d,
-	fill = true,
-	seriescolor = :jet,
-	title = "d",
-	yaxis = ("Depth (m)", :flip))
-
 pTL = contour(r, z, TL,
 	fill = true,
 	seriescolor = cgrad(:jet, rev = true),
 	title = "TL (dB)",
 	yaxis = :flip)
+
+pd = contour(r, z, d,
+	fill = true,
+	seriescolor = :jet,
+	title = "d",
+	yaxis = ("Depth (m)", :flip))
 
 pSE = contour(r, z, SE,
 	fill = true,
@@ -67,12 +67,70 @@ pPOD = contour(r, z, POD,
 
 l = @layout [a b; c d]
 
-pt = plot(pd, pTL, pSE, pPOD,
+pt = plot(pTL, pd, pSE, pPOD,
 	layout = l)
 
 savefig(pt, "img/SonarEqs_SimplePropagation.png")
 
+display(pt)
+
 ## Simple Lloyd's Mirror
+include("LloydsMirror.jl")
+
+SL = 50.
+NL = 5.
+B = 1.
+t = 1.
+DI = 20.
+p_fal = 1e-2
+
+c = 1500.0
+f = 1e2
+λ = c/f
+r_src = 0.0
+z_src = 2λ
+r = range(0, 3e2, length = 101)
+z = range(0, 10λ, length = 51)
+zTemp = 5λ
+
+TL(r, z) = LloydsMirror.lloydsmirror_singlereflection.(c, f, r_src, r, z_src, z)
+d(r, z) = SonarEquations.detection_index_gaussian(SL, TL(r, z), NL, B, t)
+DT(r, z) = SonarEquations.detection_threshold(d(r, z), B, t)
+SE(r, z) = SonarEquations.signal_excess_passive(SL, TL(r, z), NL, DI, DT(r, z))
+POD(r, z) = 100SonarEquations.probability_of_detection_gaussian(d(r, z), p_fal)
+
+pTL = contour(r, z, TL,
+	fill = true,
+	seriescolor = cgrad(:jet, rev = true),
+	title = "TL (dB)",
+	yaxis = :flip)
+
+pd = contour(r, z, d,
+	fill = true,
+	seriescolor = :jet,
+	title = "d",
+	yaxis = ("Depth (m)", :flip))
+
+pSE = contour(r, z, SE,
+	fill = true,
+	seriescolor = :jet,
+	title = "SE (dB)",
+	xaxis = "Range (m)",
+	yaxis = ("Depth", :flip))
+
+pPOD = contour(r, z, POD,
+	fill = true,
+	seriescolor = :jet,
+	title = "POD (%)",
+	xaxis = "Range (m)",
+	yaxis = :flip)
+
+l = @layout [a b; c d]
+
+pt = plot(pTL, pd, pSE, pPOD,
+	layout = l)
+
+savefig(pt, "img/SonarEqs_LloydsMirror.png")
 
 ## Multipath Propagation
 

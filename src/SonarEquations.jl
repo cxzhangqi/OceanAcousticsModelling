@@ -29,6 +29,15 @@ function detection_index_gaussian(SL, TL, NL, B, t)
 	d = B*t*((SL - TL)/(B*NL))^2
 end
 
+# function detection_index_gaussian(SL, TL, NL, B, t)
+# 	if TL ≥ SL
+# 		d = 0
+# 	else
+# 		d = B*t*((SL - TL)/(B*NL))^2
+# 	end
+# 	return d
+# end
+
 """
 
 """

@@ -8,9 +8,11 @@ Notes:
 I've started off simple, replicating the bottom loss curves in Jensen et al [[1]](#JensenEtAl).
 
 The bottom loss is dependent on the complex-valued sound speed which includes the volume attenuation in its imaginary component.
+
 ![](img/BottomLoss_Parameters.png)
 
 It was then simple enough to replicate the bottom loss for various bottom sediments.
+
 ![](img/BottomLoss_Types.png)
 
 ## Acoustic Ray Tracing
@@ -30,9 +32,17 @@ Receiver operating charactistics (ROC) curves illustrate the relationship betwee
 ![](img/DetectionIndex_Gaussian.png)
 
 ## Sonar Equations
+### Simple Propagation
 For simple ocean propagation with completely absorbing ocean boundaries (just as a simple demonstration), the following plot shows the detection index, the transmission loss, the signal excess and the probability of detection assuming Gaussian noise.
 
 ![](img/SonarEqs_SimplePropagation.png)
+
+### Lloyd's Mirror
+For the single-reflection Lloyd's Mirror interference effect, the same ocean and sonar parameters are displayed.
+
+![](img/SonarEqs_LloydsMirror.png)
+
+Might change the `contour` plots to `pcolor` plots.
 
 ## References
 > <a name="JensenEtAl">[1]</a> Jensen, F. B., Kuperman, W. A., Porter, M. B., & Schmidt, H. (2011). Computational ocean acoustics. Springer Science & Business Media.
