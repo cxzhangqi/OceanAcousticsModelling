@@ -77,10 +77,12 @@ p4 = plot(rad2deg.(θ₁), BL,
 	legendtitle = "cₛ (m/s)",
 	legend = :bottomright)
 
-plot(p1, p2, p3, p4,
+pt = plot(p1, p2, p3, p4,
 	layout = l,
 	supertitle = "Bottom Loss Variations" # doesn't work
 )
+
+savefig(pt, "img/BottomLoss_Parameters.png")
 
 ## Bottom Loss Types
 θ₁ = deg2rad.(range(0., 90., length = Int(1e3)))
