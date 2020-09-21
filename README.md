@@ -44,8 +44,6 @@ For the single-reflection Lloyd's Mirror interference effect, the same ocean and
 
 ![](img/SonarEqs_LloydsMirror.png)
 
-Might change the `contour` plots to `pcolor` plots.
-
 ## References
 > <a name="JensenEtAl">[1]</a> Jensen, F. B., Kuperman, W. A., Porter, M. B., & Schmidt, H. (2011). Computational ocean acoustics. Springer Science & Business Media.
 

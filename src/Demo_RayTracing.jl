@@ -2,7 +2,6 @@
 
 ## Preamble
 using Plots
-using StaticArrays
 
 include("AcousticPropagation.jl")
 

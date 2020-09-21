@@ -39,27 +39,23 @@ POD(r, z) = 100SonarEquations.probability_of_detection_gaussian(d(r, z), p_fal)
 r = range(1., 1e3, length = 100)
 z = range(1., 400., length = 50)
 
-pTL = contour(r, z, TL,
-	fill = true,
+pTL = heatmap(r, z, TL,
 	seriescolor = cgrad(:jet, rev = true),
 	title = "TL (dB)",
 	yaxis = :flip)
 
-pd = contour(r, z, d,
-	fill = true,
+pd = heatmap(r, z, d,
 	seriescolor = :jet,
 	title = "d",
 	yaxis = ("Depth (m)", :flip))
 
-pSE = contour(r, z, SE,
-	fill = true,
+pSE = heatmap(r, z, SE,
 	seriescolor = :jet,
 	title = "SE (dB)",
 	xaxis = "Range (m)",
 	yaxis = ("Depth", :flip))
 
-pPOD = contour(r, z, POD,
-	fill = true,
+pPOD = heatmap(r, z, POD,
 	seriescolor = :jet,
 	title = "POD (%)",
 	xaxis = "Range (m)",
@@ -71,8 +67,6 @@ pt = plot(pTL, pd, pSE, pPOD,
 	layout = l)
 
 savefig(pt, "img/SonarEqs_SimplePropagation.png")
-
-display(pt)
 
 ## Simple Lloyd's Mirror
 include("LloydsMirror.jl")
@@ -89,8 +83,8 @@ f = 1e2
 λ = c/f
 r_src = 0.0
 z_src = 2λ
-r = range(0, 3e2, length = 101)
-z = range(0, 10λ, length = 51)
+r = range(0, 3e2, length = 1001)
+z = range(0, 10λ, length = 501)
 zTemp = 5λ
 
 TL(r, z) = LloydsMirror.lloydsmirror_singlereflection.(c, f, r_src, r, z_src, z)
@@ -99,27 +93,23 @@ DT(r, z) = SonarEquations.detection_threshold(d(r, z), B, t)
 SE(r, z) = SonarEquations.signal_excess_passive(SL, TL(r, z), NL, DI, DT(r, z))
 POD(r, z) = 100SonarEquations.probability_of_detection_gaussian(d(r, z), p_fal)
 
-pTL = contour(r, z, TL,
-	fill = true,
+pTL = heatmap(r, z, TL,
 	seriescolor = cgrad(:jet, rev = true),
 	title = "TL (dB)",
 	yaxis = :flip)
 
-pd = contour(r, z, d,
-	fill = true,
+pd = heatmap(r, z, d,
 	seriescolor = :jet,
 	title = "d",
 	yaxis = ("Depth (m)", :flip))
 
-pSE = contour(r, z, SE,
-	fill = true,
+pSE = heatmap(r, z, SE,
 	seriescolor = :jet,
 	title = "SE (dB)",
 	xaxis = "Range (m)",
 	yaxis = ("Depth", :flip))
 
-pPOD = contour(r, z, POD,
-	fill = true,
+pPOD = heatmap(r, z, POD,
 	seriescolor = :jet,
 	title = "POD (%)",
 	xaxis = "Range (m)",

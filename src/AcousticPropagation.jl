@@ -144,23 +144,6 @@ function helmholtz_eikonal(θ₀::Real, r₀::Real, z₀::Real, c, zAti, zBty, R
 	zBtyFcn = parse_boundary(zBty, R)
 	return helmholtz_eikonal(θ₀, r₀, z₀, cFcn, zAtiFcn, zBtyFcn, R)
 end
-# function helmholtz_eikonal(θ₀::Real, r₀::Real, z₀::Real, c::AbstractArray, zAti::AbstractArray, zBty::AbstractArray, R::Real)
-
-# 	itpBty = interpolate((zBty[:, 1],), zBty[:, 2], Gridded(Linear()))
-# 	zBtyFcn(r) = itpBty(r)
-
-# 	itpAti = interpolate((zAti[:, 1],), zAti[:, 2], Gridded(Linear()))
-# 	zAtiFcn(r) = itpAti(r)
-
-# 	return helmholtz_eikonal(θ₀, r₀, z₀, cFcn, zAtiFcn, zBtyFcn, R)
-# end
-# function helmholtz_eikonal(θ₀::Real, r₀::Real, z₀::Real, c::Real, zAti::Real, zBty::Real, R::Real)
-# 	println("Used dispatch!")
-# 	cFcn(r, z) = c
-# 	zAtiFcn(r) = zAti
-# 	zBtyFcn(r) = zBty
-# 	return helmholtz_eikonal(θ₀, r₀, z₀, cFcn, zAtiFcn, zBtyFcn, R)
-# end
 
 """
 	parse_speed(c::AbstractArray)
