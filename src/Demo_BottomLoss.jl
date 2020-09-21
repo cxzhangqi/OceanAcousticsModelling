@@ -100,11 +100,13 @@ for nBot = 1:NumBot
 	end
 end
 
-plot(rad2deg.(θ₁), BL,
+pt = plot(rad2deg.(θ₁), BL,
 	title = "Bottom Loss Types",
 	yaxis = ("Bottom Reflection Loss (dB)", 0:5:20),
 	xaxis = ("Grazing Angle (deg)", 0:15:90),
 	label = BottomTypes,
 	ylims = (0, 20))
+
+savefig(pt, "img/BottomLoss_Types.png")
 
 ##
