@@ -15,10 +15,9 @@ It was then simple enough to replicate the bottom loss for various bottom sedime
 
 ## Ray Tracing
 The Eikonal equation is solved using Julia's [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) using the time variable in the solvers for the arc-length. The equations are given as
-```math
+$$
 \frac{dr}{ds} = c\xi(s)
-\frac{dz}{ds} = c\zeta(s)
-```
+$$
 
 ## References
 > <a name="JensenEtAl">[1]</a> Jensen, F. B., Kuperman, W. A., Porter, M. B., & Schmidt, H. (2011). Computational ocean acoustics. Springer Science & Business Media.
