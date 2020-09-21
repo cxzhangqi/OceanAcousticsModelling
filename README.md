@@ -27,7 +27,7 @@ I had some rays start at the critical angle which would yield turning points at 
 I still need to perform a few more tests to see if this ray-tracing implementation is "valid" or accurate.
 
 ## Receiver Operating Characterisics Curves
-Receiver operating charactistics (ROC) curves illustrate the relationship between the probabilities of detection and false alarm in detection theory. The theory is taken from Dawe [[2]](#Dawe)
+Receiver operating charactistics (ROC) curves illustrate the relationship between the probabilities of detection and false alarm in detection theory. The theory is taken from Dawe [[2]](#Dawe).
 
 The ROC curves for a Gaussian-distributed noise and non-fluctuating signal are replicated here.
 
