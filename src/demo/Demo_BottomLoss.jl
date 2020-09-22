@@ -1,7 +1,7 @@
 
 using Plots; pyplot()
 
-include("OceanParameters.jl")
+include("../OceanParameters.jl")
 
 ## Replicate Bottom Loss Curves
 

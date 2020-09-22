@@ -4,7 +4,7 @@ using Plots; gr()
 using SpecialFunctions
 using ColorSchemes
 
-include("SonarEquations.jl")
+include("../SonarEquations.jl")
 
 ## Single Propagation
 B = 1. # bandwidth
@@ -69,7 +69,7 @@ pt = plot(pTL, pd, pSE, pPOD,
 savefig(pt, "img/SonarEqs_SimplePropagation.png")
 
 ## Simple Lloyd's Mirror
-include("LloydsMirror.jl")
+include("../LloydsMirror.jl")
 
 SL = 50.
 NL = 5.
