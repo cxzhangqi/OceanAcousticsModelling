@@ -3,7 +3,7 @@
 ## Preamble
 using Plots
 
-include("AcousticPropagation.jl")
+include("../AcousticPropagation.jl")
 
 ## Demonstrative Scenario
 # Altimetry
@@ -56,27 +56,36 @@ display(pt)
 savefig(pt, "img/RayTrace_FirstExample.png")
 
 ## Uniformly Increasing Celerity
-zAtiVal = 0.
-zBtyVal = 5e3
+ati = AcousticPropagation.Boundary(0)
+bty = AcousticPropagation.Boundary(5e3)
+
 # zs = [0., 300., 1200., 2e3, 5e3]
 # cs = [1520, 1500, 1515, 1495, 1545.]
-# zs = [0, 5e3]
-# cs = [1500, 1600]
-# @show cMat = cat(zs, cs, dims = 2)
-cFcn(r, z) = 1500 + 100(z - zAtiVal)/(zBtyVal - zAtiVal)
 
-r₀ = 0.0
-z₀ = 20.0
+zs = [0, 5e3]
+cs = [1500, 1600]
+
+R = 250e3
+cMat = vcat([0 0 R], hcat(zs, cs, cs))
+ocnVec = AcousticPropagation.Medium(cMat, R)
+
+c(r, z) = 1500 + 100(z - zAtiVal)/(zBtyVal - zAtiVal)
+ocnFcn = AcousticPropagation.Medium(c, R)
+
+h = heatmap(range(0, R, length = 51),
+	range(zs[1], zs[end], length = 101),
+	(r, z) -> ocnFcn.c(r, z) - ocnVec.c(r, z))
+display(h)
+
+src = AcousticPropagation.Entity(0., 20.)
 θ₀ = deg2rad(10)
 # θ₀ = range(atan(5000/25e3), atan(5000/50e3), length = 5)
 # θ₀ = 5π/6
-R = 250e3
 
-RaySols = AcousticPropagation.helmholtz_eikonal.(θ₀, r₀, z₀, cFcn, zAtiVal, zBtyVal, R)
+ray = AcousticPropagation.Ray(θ₀, src, ocn, bty, ati)
 
 pt = plot(yaxis = :flip)
-plot!.(RaySols, vars = (1, 2))
-# scatter!(RaySols, vars = (1, 2))
+plot!(ray.Sol, vars = (1, 2))
 display(pt)
 
 ##
