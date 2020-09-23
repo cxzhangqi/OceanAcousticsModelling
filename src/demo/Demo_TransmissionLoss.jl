@@ -29,5 +29,6 @@ pt = heatmap(r, z, TL,
 	title = "TL (dB)",
 	yaxis = (:flip, "Depth (m)"),
 	xaxis = ("Range (m)"))
+display(pt)
 
 savefig(pt, "img/SoundField_LloydsMirror_Simple.png")

@@ -21,7 +21,7 @@ This first example demonstrates a Gaussian bathymetry and sinusoidal altimetry, 
 ![](img/RayTrace_FirstExample.png)
 
 ### Parabolic Bathymetry
-With a parabolic bathymetry, a source can be placed at the focus of the parabola which yields horizontal rays upon reflection.
+With a parabolic bathymetry, a source can be placed at the focus of the parabola which yields horizontal rays upon reflection. The following plot is a replication of Figure 3.24a of Jensen [[1]](#JensenEtAl).
 
 ![](img/RayTrace_ParabolicBoundary.png)
 

@@ -57,16 +57,13 @@ display(pt)
 savefig(pt, "img/RayTrace_FirstExample.png")
 
 ## Parabolic Bathymetry
-# SO:
-# * Parabolic works for angle-controlled reflection.
-# * General works for vector-controlled reflection.
 cVal = 250
 R = 20e3
 ocn = AcousticPropagation.Medium((r, z) -> cVal, R)
 ati = AcousticPropagation.Boundary(r -> 0)
 bty = AcousticPropagation.Boundary(r -> 2e-3*2.5e5sqrt(1 + r/cVal))
 src = AcousticPropagation.Entity(0, 0)
-θ₀ = range(atan(5e3/2e3), atan(5e3/20e3), length = 10)
+θ₀ = range(atan(5e3/2e3), atan(5e3/20e3), length = 30)
 
 rays = AcousticPropagation.Ray.(θ₀, src, ocn, bty, ati)
 
