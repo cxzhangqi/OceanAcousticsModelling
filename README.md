@@ -41,7 +41,7 @@ Of practical interest is the computation of sound fields in the ocean. In many t
 ### Lloyd's Mirror
 For the simplified ocean scenario of a constant sound speed with flat altimetry and bathymetry, the mathematics is greatly simplified yet instructively powerful in understanding the phenomenon.
 
-![](img/SoundField_LloydsMirror_Simple)
+![](img/SoundField_LloydsMirror_Simple.png)
 
 ## Receiver Operating Characteristic Curves
 Receiver operating charactistics (ROC) curves illustrate the relationship between the probabilities of detection and false alarm in detection theory. The theory is taken from Lurton [[2]](#Lurton).
