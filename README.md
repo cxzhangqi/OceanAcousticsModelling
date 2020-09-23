@@ -8,7 +8,7 @@ The following bottom loss curves are a replication of Figure 1.23 in Jensen et a
 
 ![](img/BottomLoss_Parameters.png)
 
-Also replicated here are the bottom loss curves for various sediment types.
+Also replicated here are the bottom loss curves for various sediment types, Figure 1.24 of Jensen [[1]](#JensenEtAl).
 
 ![](img/BottomLoss_Types.png)
 
