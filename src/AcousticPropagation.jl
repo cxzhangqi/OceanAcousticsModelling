@@ -51,13 +51,37 @@ end
 `t_inc`    tangent vector of incident ray
 `t_bnd`    tangent vector of boundary
 `t_rfl`    tangent vector of reflected ray
+
+TODO:
+* Reconcile the two versions via error checking.
 """
 function boundary_reflection(t_inc::Vector, t_bnd::Vector)
+	# works for generic boundary
 	n_bnd = [-t_bnd[2], t_bnd[1]]
 # 	t_rfl = t_inc - 2(t_inc ⋅ n_bnd)*n_bnd
 	t_rfl = t_inc - 2LinearAlgebra.dot(t_inc, n_bnd)*n_bnd
+
+	MyAngle(tng) = atand(tng[2]/tng[1])
+	θ_inc = MyAngle(t_inc)
+	θ_bnd = MyAngle(t_bnd)
+	θ_rfl = MyAngle(t_rfl)
+	println(θ_inc)
+	println(θ_bnd)
+	println(θ_rfl)
+
 	return t_rfl
 end
+# function boundary_reflection(t_inc::Vector, t_bnd::Vector)
+#	# works for parabolic boundary
+# 	MyAngle(tng) = atan(tng[2]/tng[1])
+# 	θ_inc = MyAngle(t_inc)
+# 	θ_bnd = MyAngle(t_bnd)
+
+# 	θ_inc_flat = θ_inc - θ_bnd
+# 	θ_rfl_flat = -θ_inc_flat
+# 	θ_rfl = θ_rfl_flat + θ_bnd
+# 	return [cos(θ_rfl), sin(θ_rfl)]
+# end
 
 """
 	Boundary(z)
@@ -176,7 +200,7 @@ return prob_eikonal, CbBnd
 end
 
 function solve_acoustic_propagation(prob_eikonal, CbBnd)
-	@time RaySol = solve(prob_eikonal, callback = CbBnd)
+	@time RaySol = solve(prob_eikonal, callback = CbBnd, reltol=1e-8, abstol=1e-8)
 	return RaySol
 end
 

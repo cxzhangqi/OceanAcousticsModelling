@@ -56,6 +56,7 @@ display(pt)
 savefig(pt, "img/RayTrace_FirstExample.png")
 
 ## Uniformly Increasing Celerity
+# Investigate difference between the interpolation and the function
 ati = AcousticPropagation.Boundary(0)
 bty = AcousticPropagation.Boundary(5e3)
 
@@ -88,42 +89,24 @@ pt = plot(yaxis = :flip)
 plot!(ray.Sol, vars = (1, 2))
 display(pt)
 
-##
-zs = [0., 300., 1200., 2e3, 5e3]
-cs = [1520, 1500, 1515, 1495, 1545.]
+## Parabolic Bathymetry
+# SO:
+# * Parabolic works for angle-controlled reflection.
+# * General works for vector-controlled reflection.
+cVal = 250
+R = 20e3
+ocn = AcousticPropagation.Medium((r, z) -> cVal, R)
+ati = AcousticPropagation.Boundary(r -> 0)
+bty = AcousticPropagation.Boundary(r -> 2e-3*2.5e5sqrt(1 + r/cVal))
+src = AcousticPropagation.Entity(0, 0)
+θ₀ = range(atan(5e3/2e3), atan(5e3/20e3), length = 10)
 
-itp = interpolate((zs,), cs, Gridded(Linear()))
-c(z) = itp(z)
-
-z = range(0, 5e3, length = 101)
-plot(z, c)
-
-## Convergence Zone Propagation
-zs = [0., 300., 1200., 2e3, 5e3]
-cs = [1520, 1500, 1515, 1495, 1545.]
-cMat = cat(zs, cs, dims = 2)
-
-r₀ = 0.0
-z₀ = 20.0
-θ₀ = deg2rad(10)
-R = 250e3
-
-zAtiVal = 0
-zBtyVal = 5e3
-
-RaySol = AcousticPropagation.helmholtz_eikonal(θ₀, r₀, z₀, cMat, zAtiVal, zBtyVal, R)
+rays = AcousticPropagation.Ray.(θ₀, src, ocn, bty, ati)
 
 pt = plot(yaxis = :flip)
-plot!(RaySol, vars = (1, 2))
-scatter!(RaySol, vars = (1, 2))
+plot!(range(0, R, length = 101), bty.z)
+# plot!(ray.Sol, vars = (1, 2))
+for nRay = 1:length(rays)
+	plot!(rays[nRay].Sol, vars = (1, 2), label = "")
+end
 display(pt)
-
-##
-zs = [0., 300., 1200., 2e3, 5e3]
-cs = [1520, 1500, 1515, 1495, 1545.]
-
-itp = interpolate((zs,), cs, Gridded(Linear()))
-c(z) = itp(z)
-
-z = range(0, 5e3, length = 101)
-plot(z, c)
