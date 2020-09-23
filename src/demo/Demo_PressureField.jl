@@ -24,3 +24,7 @@ ray = AcousticPropagation.Ray(θ₀, src, ocn, bty, ati)
 pt = plot(yaxis = :flip)
 plot!(ray.Sol, vars = (1, 2), label = "")
 display(pt)
+
+## 
+s = range(0, ray.S, length = 1000)
+plot(s, ray.A₀)

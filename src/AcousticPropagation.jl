@@ -39,8 +39,6 @@ end
 
 """
 function InterpolatingFunction(rng, dpt, val)
-	display(rng)
-	display(dpt)
 	Itp = LinearInterpolation((dpt, rng), val, extrapolation_bc = Flat())
 	return ItpFcn(r, z) = Itp(z, r)
 end
@@ -197,8 +195,8 @@ function eikonal!(du, u, p, s)
 	ξ = u[3]
 	ζ = u[4]
 	τ = u[5]
-	q = u[6]
-	p = u[7]
+	p = u[6]
+	q = u[7]
 
 	∂²c∂n²(r, z) = Ocn.c(r, z)^2*(
 		Ocn.∂²c∂r²(r, z)*ζ^2
@@ -211,8 +209,8 @@ function eikonal!(du, u, p, s)
 	du[3] = dξds = -Ocn.∂c∂r(r, z)/Ocn.c(r, z)^2
 	du[4] = dζds = -Ocn.∂c∂z(r, z)/Ocn.c(r, z)^2
 	du[5] = dτds = 1/Ocn.c(r, z)
-	du[6] = dqds = Ocn.c(r, z)*p
-	du[7] = dpds = ∂²c∂n²(r, z)/Ocn.c(r, z)^2*q
+	du[6] = dpds = ∂²c∂n²(r, z)/Ocn.c(r, z)^2*q
+	du[7] = dqds = Ocn.c(r, z)*p
 end
 
 rng_condition(u, t, ray) = Ocn.R/2 - abs(u[1] - Ocn.R/2)
@@ -227,9 +225,9 @@ z₀ = Src.z
 ξ₀ = cos(θ₀)/Ocn.c(r₀, z₀)
 ζ₀ = sin(θ₀)/Ocn.c(r₀, z₀)
 τ₀ = 0.0
-q₀ = 0.0
 p₀ = 1.0/Ocn.c(r₀, z₀)
-u₀ = [r₀, z₀, ξ₀, ζ₀, τ₀, q₀, p₀]
+q₀ = 0.0
+u₀ = [r₀, z₀, ξ₀, ζ₀, τ₀, p₀, q₀]
 
 TLmax = 100
 S = 10^(TLmax/10)
@@ -252,11 +250,44 @@ Base.broadcastable(m::Boundary) = Ref(m)
 struct Ray
 	θ₀
 	Sol
+	S
+	r
+	z
+	ξ
+	ζ
+	τ
+	p
+	q
+	θ
+	c
+	A₀
 	function Ray(θ₀, Src::Entity, Ocn::Medium, Bty::Boundary, Ati::Boundary)
 		Prob, CbBnd = acoustic_propagation_problem(θ₀, Src, Ocn, Bty, Ati)
 		Sol = solve_acoustic_propagation(Prob, CbBnd)
-		return new(θ₀, Sol)
+
+		S = Sol.t[end]
+		r(s) = Sol(s, idxs = 1)
+		z(s) = Sol(s, idxs = 2)
+		ξ(s) = Sol(s, idxs = 3)
+		ζ(s) = Sol(s, idxs = 4)
+		τ(s) = Sol(s, idxs = 5)
+		p(s) = Sol(s, idxs = 6)
+		q(s) = Sol(s, idxs = 7)
+		θ(s) = atan(ζ(s)/ξ(s))
+		c(s) = cos(θ(s))/ξ(s)
+		A₀(s) = 4π\sqrt(abs(c(s)*cos(θ₀)/r(s)/c(0)/q(s)))
+
+		return new(θ₀, Sol, S, r, z, ξ, ζ, τ, p, q, θ, c, A₀)
 	end
 end
+
+# function φ(s, n)
+# 	if n ≤ W(s)
+# 		return (W(s) - n)/W(s)
+# 	else
+# 		return 0
+# 	end
+# end
+# P(s, n) = A(s)*φ(s, n)*exp(im*ω*τ(s))
 
 end
