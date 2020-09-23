@@ -40,6 +40,7 @@ z₀ = (zBty(r₀) + zAti(r₀))/2
 src = AcousticPropagation.Entity.(r₀, z₀)
 
 θ₀ = acos(c(r₀, z₀)/cMax).*(-1.5:0.125:1.5)
+# θ₀ = acos(c(r₀, z₀)/cMax).*[-1.5, 1.5]
 rays = AcousticPropagation.Ray.(θ₀, src, ocn, bty, ati)
 
 println("Now plotting.")
@@ -110,3 +111,6 @@ for nRay = 1:length(rays)
 	plot!(rays[nRay].Sol, vars = (1, 2), label = "")
 end
 display(pt)
+
+savefig(pt, "img/RayTrace_ParabolicBoundary.png")
+

@@ -24,6 +24,10 @@ This first example shows a Gaussian bathymetry and sinusoidal altimetry. The sou
 
 I had some rays start at the critical angle which would yield turning points at the boundaries, but that hasn't been demonstrated in the plot.
 
+For the scenario of a parabolic boundary with the source located at the focus of the parabola, the reflected rays correctly emerge horizontally.
+
+![](img/RayTrace_ParabolicBoundary.png)
+
 I still need to perform a few more tests to see if this ray-tracing implementation is "valid" or accurate.
 
 ## Receiver Operating Characteristic Curves
