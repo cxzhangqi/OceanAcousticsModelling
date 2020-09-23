@@ -20,15 +20,19 @@ function detection_index_gaussian(p_dtc, p_fal)
 	if p_fal ≥ p_dtc
 		d = 0
 	else
-		d = 2(erfcinv(2p_dtc) - erfcinv(2p_fal))^2
+		# d = 2(erfcinv(2p_dtc) - erfcinv(2p_fal))^2
+		d = 2(erfinv(1 - 2p_dtc) - erfinv(1 - 2p_fal))^2
 	end
 	return d
 end
+# function detection_index_gaussian(p_dtc, p_fal)
+# 	d = 2(erfcinv(2p_dtc) - erfcinv(2p_fal))^2
+# 	# d = 2(erfinv(1 - 2p_dtc) - erfinv(1 - 2p_fal))^2
+# end
 
 # function detection_index_gaussian(SL, TL, NL, B, t)
 # 	d = B*t*((SL - TL)/(B*NL))^2
 # end
-
 function detection_index_gaussian(SL, TL, NL, B, t)
 	if TL ≥ SL
 		d = 0

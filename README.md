@@ -44,20 +44,20 @@ For the simplified ocean scenario of a constant sound speed with flat altimetry 
 ![](img/SoundField_LloydsMirror_Simple)
 
 ## Receiver Operating Characteristic Curves
-Receiver operating charactistics (ROC) curves illustrate the relationship between the probabilities of detection and false alarm in detection theory. The theory is taken from Dawe [[2]](#Lurton).
+Receiver operating charactistics (ROC) curves illustrate the relationship between the probabilities of detection and false alarm in detection theory. The theory is taken from Lurton [[2]](#Lurton).
 
 ### Gaussian
-The ROC curves for a Gaussian-distributed noise and non-fluctuating signal are here plotted as a replication of Figure 6.22a in Lurton [[2]](#Lurton).
+The ROC curves for a Gaussian-distributed noise and non-fluctuating signal are here plotted as a replication of Figure 6.22 (top) in Lurton [[2]](#Lurton).
 
 ![](img/DetectionIndex_Gaussian.png)
 
 ### Exponential
-For exponentially distributed noise with non-fluctuating signal, Figure 6.22c of Lurton [[2]](#Lurton) is replicated.
+For exponentially distributed noise with non-fluctuating signal, Figure 6.22 (bottom) of Lurton [[2]](#Lurton) is replicated.
 
 ![](img/DetectionIndex_Exponential.png)
 
 ### Rayleigh
-For Rayleigh distributed noise with non-fluctuating signal, Figure 6.22b of Lurton [[2]](#Lurton) is replicated.
+For Rayleigh distributed noise with non-fluctuating signal, Figure 6.22 (center) of Lurton [[2]](#Lurton) is replicated.
 
 ![](img/DetectionIndex_Rayleigh.png)
 
@@ -91,7 +91,7 @@ Ocean acoustics theory implementation:
 
 Implementation specific:
 * Julia package production
-* Optimisation
+* Optimisation (GPU, etc)
 
 ## References
 > <a name="JensenEtAl">[1]</a> Jensen, F. B., Kuperman, W. A., Porter, M. B., & Schmidt, H. (2011). Computational ocean acoustics. Springer Science & Business Media.
