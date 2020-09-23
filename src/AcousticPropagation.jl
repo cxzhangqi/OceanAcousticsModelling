@@ -133,6 +133,9 @@ struct Medium
 	c::Function
 	∂c∂r::Function
 	∂c∂z::Function
+	∂²c∂r²::Function
+	∂²c∂r∂z::Function
+	∂²c∂z²::Function
 	R::Real
 end
 function Medium(c::Function, R::Real)
@@ -141,7 +144,20 @@ function Medium(c::Function, R::Real)
 	∇c(r, z) = ∇c_([r, z])
 	∂c∂r(r, z) = ∇c(r, z)[1]
 	∂c∂z(r, z) = ∇c(r, z)[2]
-	return Medium(c, ∂c∂r, ∂c∂z, R)
+
+	∂c∂r_(x) = ∂c∂r(x[1], x[2])
+	∇∂c∂r_(x) = ForwardDiff.gradient(∂c∂r_, x)
+	∇∂c∂r(r, z) = ∇∂c∂r_([r, z])
+
+	∂c∂z_(x) = ∂c∂z(x[1], x[2])
+	∇∂c∂z_(x) = ForwardDiff.gradient(∂c∂r_, x)
+	∇∂c∂z(r, z) = ∇∂c∂z_([r, z])
+
+	∂²c∂r²(r, z) = ∇∂c∂r(r, z)[1]
+	∂²c∂r∂z(r, z) = ∇∂c∂r(r, z)[2]
+	∂²c∂z²(r, z) = ∇∂c∂z(r, z)[2]
+
+	return Medium(c, ∂c∂r, ∂c∂z, ∂²c∂r², ∂²c∂r∂z, ∂²c∂z², R)
 end
 function Medium(c::AbstractArray, R::Real)
 	r_ = [rc for rc ∈ c[1, 2:end]]
@@ -181,11 +197,22 @@ function eikonal!(du, u, p, s)
 	ξ = u[3]
 	ζ = u[4]
 	τ = u[5]
-	du[1] = dr = Ocn.c(r, z)*ξ
-	du[2] = dz = Ocn.c(r, z)*ζ
-	du[3] = dξ = -Ocn.∂c∂r(r, z)/Ocn.c(r, z)^2
-	du[4] = dζ = -Ocn.∂c∂z(r, z)/Ocn.c(r, z)^2
-	du[5] = dτ = 1/Ocn.c(r, z)
+	q = u[6]
+	p = u[7]
+
+	∂²c∂n²(r, z) = Ocn.c(r, z)^2*(
+		Ocn.∂²c∂r²(r, z)*ζ^2
+		- 2Ocn.∂²c∂r∂z(r, z)*ξ*ζ
+		+ Ocn.∂²c∂z²(r, z)*ξ^2
+	)
+
+	du[1] = drds = Ocn.c(r, z)*ξ
+	du[2] = dzds = Ocn.c(r, z)*ζ
+	du[3] = dξds = -Ocn.∂c∂r(r, z)/Ocn.c(r, z)^2
+	du[4] = dζds = -Ocn.∂c∂z(r, z)/Ocn.c(r, z)^2
+	du[5] = dτds = 1/Ocn.c(r, z)
+	du[6] = dqds = Ocn.c(r, z)*p
+	du[7] = dpds = ∂²c∂n²(r, z)/Ocn.c(r, z)^2*q
 end
 
 rng_condition(u, t, ray) = Ocn.R/2 - abs(u[1] - Ocn.R/2)
@@ -199,8 +226,10 @@ r₀ = Src.r
 z₀ = Src.z
 ξ₀ = cos(θ₀)/Ocn.c(r₀, z₀)
 ζ₀ = sin(θ₀)/Ocn.c(r₀, z₀)
-τ₀ = 0.
-u₀ = [r₀, z₀, ξ₀, ζ₀, τ₀]
+τ₀ = 0.0
+q₀ = 0.0
+p₀ = 1.0/Ocn.c(r₀, z₀)
+u₀ = [r₀, z₀, ξ₀, ζ₀, τ₀, q₀, p₀]
 
 TLmax = 100
 S = 10^(TLmax/10)
