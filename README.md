@@ -26,14 +26,14 @@ With a parabolic bathymetry, a source can be placed at the focus of the parabola
 ![](img/RayTrace_ParabolicBoundary.png)
 
 ### Upward Refracting Rays
-A simple environment with a linearly increase sound speed with depth yields upward refracting rays.
+A simple environment with a linearly increasing sound speed with depth yields upward refracting rays.
 
 ![](img/RayTrace_UpwardRefracting.png)
 
 ### Convergence Zones
 Certain sound speed profiles in the ocean yield rays that group together and return to the surface in ranged intervals. This is a replication of Figure 1.10a in Jensen [[1]](#JensenEtAl).
 
-![](img/RayTrace_ConvergenceZone.png)
+![](img/RayTrace_ConvergenceZones.png)
 
 ## Sound Field
 Of practical interest is the computation of sound fields in the ocean. In many theories, such calculations are built on the ray theory with forms of interpolation such as beam theory.

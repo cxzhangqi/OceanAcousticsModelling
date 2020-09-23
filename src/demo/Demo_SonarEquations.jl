@@ -42,7 +42,7 @@ z = range(1., 400., length = 50)
 pTL = heatmap(r, z, TL,
 	seriescolor = cgrad(:jet, rev = true),
 	title = "TL (dB)",
-	yaxis = :flip)
+	yaxis = ("Depth (m)", :flip))
 
 pd = heatmap(r, z, d,
 	seriescolor = :jet,
@@ -53,7 +53,7 @@ pSE = heatmap(r, z, SE,
 	seriescolor = :jet,
 	title = "SE (dB)",
 	xaxis = "Range (m)",
-	yaxis = ("Depth", :flip))
+	yaxis = ("Depth (m)", :flip))
 
 pPOD = heatmap(r, z, POD,
 	seriescolor = :jet,
@@ -65,7 +65,7 @@ l = @layout [a b; c d]
 
 pt = plot(pTL, pd, pSE, pPOD,
 	layout = l)
-
+display(pt)
 savefig(pt, "img/SonarEqs_SimplePropagation.png")
 
 ## Simple Lloyd's Mirror
@@ -96,7 +96,7 @@ POD(r, z) = 100SonarEquations.probability_of_detection_gaussian(d(r, z), p_fal)
 pTL = heatmap(r, z, TL,
 	seriescolor = cgrad(:jet, rev = true),
 	title = "TL (dB)",
-	yaxis = :flip)
+	yaxis = ("Depth (m)", :flip))
 
 pd = heatmap(r, z, d,
 	seriescolor = :jet,
@@ -107,7 +107,7 @@ pSE = heatmap(r, z, SE,
 	seriescolor = :jet,
 	title = "SE (dB)",
 	xaxis = "Range (m)",
-	yaxis = ("Depth", :flip))
+	yaxis = ("Depth (m)", :flip))
 
 pPOD = heatmap(r, z, POD,
 	seriescolor = :jet,
@@ -119,7 +119,7 @@ l = @layout [a b; c d]
 
 pt = plot(pTL, pd, pSE, pPOD,
 	layout = l)
-
+display(pt)
 savefig(pt, "img/SonarEqs_LloydsMirror.png")
 
 heatmap(r, z, DT,

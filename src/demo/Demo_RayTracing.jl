@@ -44,7 +44,9 @@ src = AcousticPropagation.Entity.(r₀, z₀)
 rays = AcousticPropagation.Ray.(θ₀, src, ocn, bty, ati)
 
 println("Now plotting.")
-pt = plot(yaxis = :flip)
+pt = plot(
+	xaxis = "Range (m)",
+	yaxis = ("Depth (m)", :flip))
 r = range(0, rMax, length = 100)
 # z = range(zAtiMin, zMax, length = 51)
 plot!(r, zAti, label = "Altimetry")
@@ -67,7 +69,9 @@ src = AcousticPropagation.Entity(0, 0)
 
 rays = AcousticPropagation.Ray.(θ₀, src, ocn, bty, ati)
 
-pt = plot(yaxis = :flip)
+pt = plot(
+	xaxis = "Range (m)",
+	yaxis = ("Depth(m)", :flip))
 plot!(range(0, R, length = 101), bty.z, label = "Bathymetry")
 # plot!(ray.Sol, vars = (1, 2))
 for nRay = 1:length(rays)
@@ -90,7 +94,9 @@ src = AcousticPropagation.Entity(0, 0)
 # θ₀ = range(0.5θ_crit, θ_crit, length = 2)
 rays = AcousticPropagation.Ray.(θ₀, src, ocn, bty, ati)
 
-pt = plot(yaxis = :flip)
+pt = plot(
+	xaxis = "Range (m)",
+	yaxis = ("Depth (m)", :flip))
 for nRay = 1:length(rays)
 	plot!(rays[nRay].Sol, vars = (1, 2), label = "")
 end
@@ -98,7 +104,7 @@ display(pt)
 
 savefig(pt, "img/RayTrace_UpwardRefracting.png")
 
-## Convergence Zone
+## Convergence Zones
 cVec = [1520, 1500, 1515, 1495, 1545.]
 zVec = [0., 300., 1200., 2e3, 5000.]
 
@@ -113,10 +119,12 @@ src = AcousticPropagation.Entity(0, 0)
 
 rays = AcousticPropagation.Ray.(θ₀, src, ocn, bty, ati)
 
-pt = plot(yaxis = :flip)
+pt = plot(
+	xaxis = "Range (m)",
+	yaxis = ("Depth (m)", :flip))
 for nRay = 1:length(rays)
 	plot!(rays[nRay].Sol, vars = (1, 2), label = "")
 end
 display(pt)
 
-savefig(pt, "img/RayTrace_ConvergenceZone.png")
+savefig(pt, "img/RayTrace_ConvergenceZones.png")
