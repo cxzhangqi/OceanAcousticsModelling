@@ -281,6 +281,18 @@ struct Ray
 	end
 end
 
+# struct Beams
+# 	δθ₀::Real
+# 	function Beams(δθ₀::Real, Nθ::Integer, θ₀::Real)
+# 		if iseven(Nθ)
+# 			N = Nθ/2
+# 			θ₀
+# 		else
+# 			N = (Nθ + 1)/2
+# 		end
+# 	end
+# end
+
 # function φ(s, n)
 # 	if n ≤ W(s)
 # 		return (W(s) - n)/W(s)

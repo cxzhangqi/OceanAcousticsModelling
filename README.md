@@ -31,6 +31,7 @@ For the scenario of a parabolic boundary with the source located at the focus of
 And indulge me with a few more examples.
 
 ![](img/RayTrace_UpwardRefracting.png)
+
 ![](img/RayTrace_ConvergenceZone.png)
 
 I still need to perform a few more tests to see if this ray-tracing implementation is "valid" or accurate.
