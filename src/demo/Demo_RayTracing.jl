@@ -56,40 +56,6 @@ display(pt)
 
 savefig(pt, "img/RayTrace_FirstExample.png")
 
-## Uniformly Increasing Celerity
-# Investigate difference between the interpolation and the function
-ati = AcousticPropagation.Boundary(0)
-bty = AcousticPropagation.Boundary(5e3)
-
-# zs = [0., 300., 1200., 2e3, 5e3]
-# cs = [1520, 1500, 1515, 1495, 1545.]
-
-zs = [0, 5e3]
-cs = [1500, 1600]
-
-R = 250e3
-cMat = vcat([0 0 R], hcat(zs, cs, cs))
-ocnVec = AcousticPropagation.Medium(cMat, R)
-
-c(r, z) = 1500 + 100(z - zAtiVal)/(zBtyVal - zAtiVal)
-ocnFcn = AcousticPropagation.Medium(c, R)
-
-h = heatmap(range(0, R, length = 51),
-	range(zs[1], zs[end], length = 101),
-	(r, z) -> ocnFcn.c(r, z) - ocnVec.c(r, z))
-display(h)
-
-src = AcousticPropagation.Entity(0., 20.)
-θ₀ = deg2rad(10)
-# θ₀ = range(atan(5000/25e3), atan(5000/50e3), length = 5)
-# θ₀ = 5π/6
-
-ray = AcousticPropagation.Ray(θ₀, src, ocn, bty, ati)
-
-pt = plot(yaxis = :flip)
-plot!(ray.Sol, vars = (1, 2))
-display(pt)
-
 ## Parabolic Bathymetry
 # SO:
 # * Parabolic works for angle-controlled reflection.
@@ -105,7 +71,7 @@ src = AcousticPropagation.Entity(0, 0)
 rays = AcousticPropagation.Ray.(θ₀, src, ocn, bty, ati)
 
 pt = plot(yaxis = :flip)
-plot!(range(0, R, length = 101), bty.z)
+plot!(range(0, R, length = 101), bty.z, label = "Bathymetry")
 # plot!(ray.Sol, vars = (1, 2))
 for nRay = 1:length(rays)
 	plot!(rays[nRay].Sol, vars = (1, 2), label = "")
@@ -114,3 +80,46 @@ display(pt)
 
 savefig(pt, "img/RayTrace_ParabolicBoundary.png")
 
+## Uniformly Increasing Celerity
+ati = AcousticPropagation.Boundary(0)
+bty = AcousticPropagation.Boundary(5e3)
+ocn = AcousticPropagation.Medium((r, z) -> 1500 + 100z/5e3, 1e5)
+src = AcousticPropagation.Entity(0, 0)
+θ_crit = acos(ocn.c(0, 0)/ocn.c(0, 5e3))
+# ocn.c(0, 0)
+# ocn.c(0, 5e3)
+# θ_crit = acos(1500. /1600.)
+θ₀ = range(0.1θ_crit, θ_crit, length = 10)
+# θ₀ = range(0.5θ_crit, θ_crit, length = 2)
+rays = AcousticPropagation.Ray.(θ₀, src, ocn, bty, ati)
+
+pt = plot(yaxis = :flip)
+for nRay = 1:length(rays)
+	plot!(rays[nRay].Sol, vars = (1, 2), label = "")
+end
+display(pt)
+
+savefig(pt, "img/RayTrace_UpwardRefracting.png")
+
+## Convergence Zone
+cVec = [1520, 1500, 1515, 1495, 1545.]
+zVec = [0., 300., 1200., 2e3, 5000.]
+
+cMat = vcat([0 0 250e3], hcat(zVec, cVec, cVec))
+
+ati = AcousticPropagation.Boundary(0)
+bty = AcousticPropagation.Boundary(5e3)
+ocn = AcousticPropagation.Medium(cMat, 250e3)
+src = AcousticPropagation.Entity(0, 0)
+θ_crit = acos(ocn.c(0, 0)/ocn.c(0, 5e3))
+θ₀ = range(0.01θ_crit, θ_crit, length = 10)
+
+rays = AcousticPropagation.Ray.(θ₀, src, ocn, bty, ati)
+
+pt = plot(yaxis = :flip)
+for nRay = 1:length(rays)
+	plot!(rays[nRay].Sol, vars = (1, 2), label = "")
+end
+display(pt)
+
+savefig(pt, "img/RayTrace_ConvergenceZone.png")

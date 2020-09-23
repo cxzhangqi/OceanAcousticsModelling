@@ -80,17 +80,17 @@ end
 # 	θ_bnd = MyAngle(t_bnd)
 # 	θ_rfl = MyAngle(t_rfl)
 
-# 	if !isapprox(θ_inc - θ_bnd, θ_bnd - θ_rfl; atol = 1e-6)
-# 		println(t_inc)
-# 		println(θ_inc)
-# 		println(t_bnd)
-# 		println(θ_bnd)
-# 		println(t_rfl)
-# 		println(θ_rfl)
-# 		println(θ_inc - θ_bnd)
-# 		println(θ_bnd - θ_rfl)
-# 		error("Angle calculated incorrectly.")
-# 	end
+# 	# if !isapprox(θ_inc - θ_bnd, θ_bnd - θ_rfl; atol = 1e-6)
+# 	# 	println(t_inc)
+# 	# 	println(θ_inc)
+# 	# 	println(t_bnd)
+# 	# 	println(θ_bnd)
+# 	# 	println(t_rfl)
+# 	# 	println(θ_rfl)
+# 	# 	println(θ_inc - θ_bnd)
+# 	# 	println(θ_bnd - θ_rfl)
+# 	# 	error("Angle calculated incorrectly.")
+# 	# end
 
 # 	return t_rfl
 # end
