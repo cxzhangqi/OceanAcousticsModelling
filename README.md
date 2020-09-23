@@ -1,47 +1,65 @@
 # OceanAcousticsModelling
-This package is an implementation of a number of textbooks I study in ocean acoustics modelling.
-
-Notes:
-* I still haven't figured out how to produce Julia packages yet.
+This collection of modules is an implementation of a ocean acoustics modelling theory.
 
 ## Bottom Acoustic Loss
-I've started off simple, replicating the bottom loss curves in Jensen et al [[1]](#JensenEtAl).
+The bottom loss is dependent on the complex-valued sound speed which includes the attenuation in its imaginary component.
 
-The bottom loss is dependent on the complex-valued sound speed which includes the volume attenuation in its imaginary component.
+The following bottom loss curves are a replication of Figure 1.23 in Jensen et al [[1]](#JensenEtAl).
 
 ![](img/BottomLoss_Parameters.png)
 
-It was then simple enough to replicate the bottom loss for various bottom sediments.
+Also replicated here are the bottom loss curves for various sediment types.
 
 ![](img/BottomLoss_Types.png)
 
 ## Acoustic Ray Tracing
-The Eikonal equation is solved using Julia's [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) using the time variable in the solvers for the arc-length.
+The Eikonal equation is solved using Julia's [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) using the time variable in the solvers for the arc-length. Such solver package permits function inputs for the environmental features. The ray tracing is implemented such that any gridded inputs are incorporated as interpolating functions which are passed to the solver.
 
-This first example shows a Gaussian bathymetry and sinusoidal altimetry. The sound speed profile is also range-dependent as a parabola with maximums at the ocean boundaries, which shifts with the changing boundary depths.
+### Smooth Boundaries
+This first example demonstrates a Gaussian bathymetry and sinusoidal altimetry, inputted as functions. The sound speed profile is also range-dependent as a parabola with maximums at the ocean boundaries, which shifts with the changing boundary depths.
 
 ![](img/RayTrace_FirstExample.png)
 
-I had some rays start at the critical angle which would yield turning points at the boundaries, but that hasn't been demonstrated in the plot.
-
-For the scenario of a parabolic boundary with the source located at the focus of the parabola, the reflected rays correctly emerge horizontally.
+### Parabolic Bathymetry
+With a parabolic bathymetry, a source can be placed at the focus of the parabola which yields horizontal rays upon reflection.
 
 ![](img/RayTrace_ParabolicBoundary.png)
 
-And indulge me with a few more examples.
+### Upward Refracting Rays
+A simple environment with a linearly increase sound speed with depth yields upward refracting rays.
 
 ![](img/RayTrace_UpwardRefracting.png)
 
+### Convergence Zones
+Certain sound speed profiles in the ocean yield rays that group together and return to the surface in ranged intervals. This is a replication of Figure 1.10a in Jensen [[1]](#JensenEtAl).
+
 ![](img/RayTrace_ConvergenceZone.png)
 
-I still need to perform a few more tests to see if this ray-tracing implementation is "valid" or accurate.
+## Sound Field
+Of practical interest is the computation of sound fields in the ocean. In many theories, such calculations are built on the ray theory with forms of interpolation such as beam theory.
+
+### Lloyd's Mirror
+For the simplified ocean scenario of a constant sound speed with flat altimetry and bathymetry, the mathematics is greatly simplified yet instructively powerful in understanding the phenomenon.
+
+![](img/SoundField_LloydsMirror_Simple)
 
 ## Receiver Operating Characteristic Curves
-Receiver operating charactistics (ROC) curves illustrate the relationship between the probabilities of detection and false alarm in detection theory. The theory is taken from Dawe [[2]](#Dawe).
+Receiver operating charactistics (ROC) curves illustrate the relationship between the probabilities of detection and false alarm in detection theory. The theory is taken from Dawe [[2]](#Lurton).
 
-The ROC curves for a Gaussian-distributed noise and non-fluctuating signal are replicated here.
+### Gaussian
+The ROC curves for a Gaussian-distributed noise and non-fluctuating signal are here plotted as a replication of Figure 6.22a in Lurton [[2]](#Lurton).
 
 ![](img/DetectionIndex_Gaussian.png)
+
+### Exponential
+For exponentially distributed noise with non-fluctuating signal, Figure 6.22c of Lurton [[2]](#Lurton) is replicated.
+
+![](img/DetectionIndex_Exponential.png)
+
+### Rayleigh
+For Rayleigh distributed noise with non-fluctuating signal, Figure 6.22b of Lurton [[2]](#Lurton) is replicated.
+
+![](img/DetectionIndex_Rayleigh.png)
 
 ## Sonar Equations
 ### Simple Propagation
@@ -54,7 +72,28 @@ For the single-reflection Lloyd's Mirror interference effect, the same ocean and
 
 ![](img/SonarEqs_LloydsMirror.png)
 
+## Further Work
+Ocean acoustics theory implementation:
+* Propagation examples
+  * Deep-sound-channel
+  * Surface-duct
+  * Arctic
+  * Shallow water
+  * Munk profile
+  * Dickins seamount
+  * Balearic Sea
+* Beam tracing
+  * Hat
+  * Gaussian
+* Sonar equations
+* 3D ray tracing
+* Eigenrays
+
+Implementation specific:
+* Julia package production
+* Optimisation
+
 ## References
 > <a name="JensenEtAl">[1]</a> Jensen, F. B., Kuperman, W. A., Porter, M. B., & Schmidt, H. (2011). Computational ocean acoustics. Springer Science & Business Media.
 
-> <a name="Dawe">[2]</a> Dawe, R. L. (1997). Detection threshold modelling explained (No. DSTO-TR-0586). DEFENCE SCIENCE AND TECHNOLOGY ORGANISATION CANBERRA (AUSTRALIA).
+> <a name="Lurton">[2]</a> Lurton, X., & Leviandier, L. (2010). Underwater acoustic wave propagation, An Introduction to Underwater Acoustics: Principles and Applications.
