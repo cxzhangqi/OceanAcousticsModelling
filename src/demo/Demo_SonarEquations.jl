@@ -47,7 +47,7 @@ pTL = heatmap(r, z, TL,
 pd = heatmap(r, z, d,
 	seriescolor = :jet,
 	title = "d",
-	yaxis = ("Depth (m)", :flip))
+	yaxis = :flip)
 
 pSE = heatmap(r, z, SE,
 	seriescolor = :jet,
@@ -101,7 +101,7 @@ pTL = heatmap(r, z, TL,
 pd = heatmap(r, z, d,
 	seriescolor = :jet,
 	title = "d",
-	yaxis = ("Depth (m)", :flip))
+	yaxis = :flip)
 
 pSE = heatmap(r, z, SE,
 	seriescolor = :jet,
