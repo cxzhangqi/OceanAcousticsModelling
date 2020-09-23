@@ -45,6 +45,20 @@ end
 """
 
 """
+function detection_index_exponential(p_dtc, p_fal)
+	d = (log(p_fal)/log(p_dtc) - 1)^2
+end
+
+"""
+
+"""
+function detection_index_rayleigh(p_dtc, p_fal)
+	d = π/(4 - π)*(sqrt(log(p_fal)/log(p_dtc)) - 1)^2
+end
+
+"""
+
+"""
 function detection_threshold(d, B, t)
 	DT = 5log10(d*B/t)
 end
@@ -56,6 +70,20 @@ Calculates the probability of detection for a non-fluctuating signal in a Gaussi
 """
 function probability_of_detection_gaussian(d, p_fal)
 	p_dtc = erfc(erfcinv(2p_fal) - sqrt(d/2))/2
+end
+
+"""
+	
+"""
+function probability_of_detection_exponential(d, p_fal)
+	p_dtc = exp(log(p_fal)/(sqrt(d) + 1))
+end
+
+"""
+
+"""
+function probability_of_detection_rayleigh(d, p_fal)
+	p_dtc = exp(log(p_fal)/(sqrt((4 - π)/π*d) + 1)^2)
 end
 
 end
