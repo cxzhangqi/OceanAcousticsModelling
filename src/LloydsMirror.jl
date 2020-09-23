@@ -6,9 +6,9 @@ function lloydsmirror_singlereflection(c, f, r_src, r_hyd, z_src, z_hyd)
 	s_dir = sqrt((r_src - r_hyd)^2 + (z_src - z_hyd)^2)
 	s_rfl = sqrt((r_src - r_hyd)^2 + (z_src + z_hyd)^2)
 
-	pressure(s) = s\exp(im*k*s)
+	pressure(s) = exp(im*k*s)/s
 	p_dir = pressure(s_dir)
-	p_rfl = pressure(s_rfl)
+	p_rfl = -pressure(s_rfl)
 
 	p = p_dir + p_rfl
 	TL = -20log10(abs(p))

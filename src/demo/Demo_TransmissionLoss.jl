@@ -6,29 +6,25 @@ using Plots
 ## Lloyds Mirror
 include("../LloydsMirror.jl")
 
-SL = 50.
-NL = 5.
-B = 1.
-t = 1.
-DI = 20.
-p_fal = 1e-2
-
-c = 1500.0
-f = 1e2
-λ = c/f
-r_src = 0.0
-z_src = 2λ
-r = range(0, 3e2, length = 1001)
-z = range(0, 10λ, length = 501)
-zTemp = 5λ
+f = 150.
+r_src = 0.
+z_src = 25.
+z = range(0, 4e2, length = 500)
+r = range(0, 5e3, length = 500)
+c = 1500.
 
 TL(r, z) = LloydsMirror.lloydsmirror_singlereflection.(c, f, r_src, r, z_src, z)
 
-pt = heatmap(r, z, TL,
+ptField = heatmap(r, z, TL,
 	seriescolor = cgrad(:jet, rev = true),
 	title = "TL (dB)",
 	yaxis = (:flip, "Depth (m)"),
 	xaxis = ("Range (m)"))
-display(pt)
-
+display(ptField)
 savefig(pt, "img/SoundField_LloydsMirror_Simple.png")
+
+ptSlice = plot(r, r -> TL(r, 200.),
+	yaxis = :flip)
+plot!(r, r -> 20log10(r))
+display(ptSlice)
+savefig(ptSlice, "img/SoundField_LloydsMirror_Simple_Slice.png")

@@ -43,6 +43,10 @@ For the simplified ocean scenario of a constant sound speed with flat altimetry 
 
 ![](img/SoundField_LloydsMirror_Simple.png)
 
+The following plot of a slice through depth is a replication of Figure 1.9 in Jensen [[1]](#JensenEtAl).
+
+![](img/SoundField_LloydsMirror_Simple_DepthSlice.png)
+
 ## Receiver Operating Characteristic Curves
 Receiver operating charactistics (ROC) curves illustrate the relationship between the probabilities of detection and false alarm in detection theory. The theory is taken from Lurton [[2]](#Lurton).
 
