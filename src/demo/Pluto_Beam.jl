@@ -7,6 +7,8 @@ using InteractiveUtils
 # ╔═╡ 1968f0a2-fde4-11ea-3a5e-c1fc5176627f
 begin
 	using Plots
+	using IntervalRootFinding
+	using IntervalArithmetic
 	
 	include("../AcousticPropagation.jl")
 end
@@ -117,8 +119,17 @@ end
 # ╔═╡ 54b58be0-fdea-11ea-356e-b9f30d0f15be
 s = range(0, ray.S, length = 1000)
 
+# ╔═╡ 4fcd84b0-fe27-11ea-29f2-07ff5129b488
+begin
+	r = R/100
+	z = Z/2
+end
+
 # ╔═╡ 9e3552fe-fdee-11ea-1664-97194950ce10
-fzero(s) = 2(ray.r(s) - r)*ray.∂x_∂s(s) + 2(ray.z(s) - z)*ray.∂z_∂s(s)
+fzero(s) = 2(ray.r(s) - r)*ray.∂r_∂s(s) + 2(ray.z(s) - z)*ray.∂z_∂s(s)
+
+# ╔═╡ d5a98de0-fe27-11ea-0348-0f3eca4ef8ea
+rts = roots(fzero, 0..10)
 
 # ╔═╡ Cell order:
 # ╟─34c9dff0-fdd8-11ea-383b-b3c3d5e3bbe8
@@ -135,3 +146,5 @@ fzero(s) = 2(ray.r(s) - r)*ray.∂x_∂s(s) + 2(ray.z(s) - z)*ray.∂z_∂s(s)
 # ╠═ecf09052-fde8-11ea-27cf-c397d368a09c
 # ╠═54b58be0-fdea-11ea-356e-b9f30d0f15be
 # ╠═9e3552fe-fdee-11ea-1664-97194950ce10
+# ╠═4fcd84b0-fe27-11ea-29f2-07ff5129b488
+# ╠═d5a98de0-fe27-11ea-0348-0f3eca4ef8ea

@@ -100,15 +100,15 @@ end
 """
 struct Boundary
 	z::Function
-	dzdr::Function
+	dz_dr::Function
 	condition::Function
 	affect!::Function
-end
-function Boundary(z::Function)
-	dzdr(r) = ForwardDiff.derivative(z, r)
-	condition(u, t, ray) = z(u[1]) - u[2]
-	affect!(ray) = ray.u[3], ray.u[4] = boundary_reflection([ray.u[3], ray.u[4]], [1, dzdr(ray.u[1])])
-	return Boundary(z, dzdr, condition, affect!)
+	function Boundary(z::Function)
+		dz_dr(r) = ForwardDiff.derivative(z, r)
+		condition(u, t, ray) = z(u[1]) - u[2]
+		affect!(ray) = ray.u[3], ray.u[4] = boundary_reflection([ray.u[3], ray.u[4]], [1, dz_dr(ray.u[1])])
+		return new(z, dz_dr, condition, affect!)
+	end
 end
 function Boundary(rz::AbstractArray)
 	r_ = [rng for rng ∈ rz[:, 1]]
@@ -129,35 +129,35 @@ end
 """
 struct Medium
 	c::Function
-	∂c∂r::Function
-	∂c∂z::Function
-	∂²c∂r²::Function
-	∂²c∂r∂z::Function
-	∂²c∂z²::Function
+	∂c_∂r::Function
+	∂c_∂z::Function
+	∂²c_∂r²::Function
+	∂²c_∂r∂z::Function
+	∂²c_∂z²::Function
 	R::Real
+	function Medium(c::Function, R::Real)
+		c_(x) = c(x[1], x[2])
+		∇c_(x) = ForwardDiff.gradient(c_, x)
+		∇c(r, z) = ∇c_([r, z])
+		∂c_∂r(r, z) = ∇c(r, z)[1]
+		∂c_∂z(r, z) = ∇c(r, z)[2]
+	
+		∂c_∂r_(x) = ∂c_∂r(x[1], x[2])
+		∇∂c_∂r_(x) = ForwardDiff.gradient(∂c_∂r_, x)
+		∇∂c_∂r(r, z) = ∇∂c_∂r_([r, z])
+	
+		∂c_∂z_(x) = ∂c_∂z(x[1], x[2])
+		∇∂c_∂z_(x) = ForwardDiff.gradient(∂c_∂r_, x)
+		∇∂c_∂z(r, z) = ∇∂c_∂z_([r, z])
+	
+		∂²c_∂r²(r, z) = ∇∂c_∂r(r, z)[1]
+		∂²c_∂r∂z(r, z) = ∇∂c_∂r(r, z)[2]
+		∂²c_∂z²(r, z) = ∇∂c_∂z(r, z)[2]
+	
+		return new(c, ∂c_∂r, ∂c_∂z, ∂²c_∂r², ∂²c_∂r∂z, ∂²c_∂z², R)
+	end
 end
-function Medium(c::Function, R::Real)
-	c_(x) = c(x[1], x[2])
-	∇c_(x) = ForwardDiff.gradient(c_, x)
-	∇c(r, z) = ∇c_([r, z])
-	∂c∂r(r, z) = ∇c(r, z)[1]
-	∂c∂z(r, z) = ∇c(r, z)[2]
-
-	∂c∂r_(x) = ∂c∂r(x[1], x[2])
-	∇∂c∂r_(x) = ForwardDiff.gradient(∂c∂r_, x)
-	∇∂c∂r(r, z) = ∇∂c∂r_([r, z])
-
-	∂c∂z_(x) = ∂c∂z(x[1], x[2])
-	∇∂c∂z_(x) = ForwardDiff.gradient(∂c∂r_, x)
-	∇∂c∂z(r, z) = ∇∂c∂z_([r, z])
-
-	∂²c∂r²(r, z) = ∇∂c∂r(r, z)[1]
-	∂²c∂r∂z(r, z) = ∇∂c∂r(r, z)[2]
-	∂²c∂z²(r, z) = ∇∂c∂z(r, z)[2]
-
-	return Medium(c, ∂c∂r, ∂c∂z, ∂²c∂r², ∂²c∂r∂z, ∂²c∂z², R)
-end
-function Medium(c::AbstractArray, R::Real)
+function Medium(c::AbstractArray, R::Real = c[end, 1])
 	r_ = [rc for rc ∈ c[1, 2:end]]
 	z_ = [zc for zc ∈ c[2:end, 1]]
 	c_ = c[2:end, 2:end]
@@ -165,7 +165,7 @@ function Medium(c::AbstractArray, R::Real)
 	cFcn = InterpolatingFunction(r_, z_, c_)
 	return Medium(cFcn, R)
 end
-function Medium(z::AbstractVector, c::AbstractVector, R)
+function Medium(z::AbstractVector, c::AbstractVector, R = z[end])
 	cMat = vcat([0 0 R], hcat(z, c, c))
 	return Medium(cMat, R)
 end
@@ -184,6 +184,7 @@ end
 struct Entity
 	r::Real
 	z::Real
+	f::Real
 end
 
 function acoustic_propagation_problem(
@@ -193,53 +194,64 @@ function acoustic_propagation_problem(
 	Bty::Boundary,
 	Ati::Boundary)
 
-function eikonal!(du, u, p, s)
-	r = u[1]
-	z = u[2]
-	ξ = u[3]
-	ζ = u[4]
-	τ = u[5]
-	p = u[6]
-	q = u[7]
+	function eikonal!(du, u, p, s)
+		r = u[1]
+		z = u[2]
+		ξ = u[3]
+		ζ = u[4]
+		τ = u[5]
+		pʳ = u[6]
+		pⁱ = u[7]
+		qʳ = u[8]
+		qⁱ = u[9]
 
-	∂²c∂n²(r, z) = Ocn.c(r, z)^2*(
-		Ocn.∂²c∂r²(r, z)*ζ^2
-		- 2Ocn.∂²c∂r∂z(r, z)*ξ*ζ
-		+ Ocn.∂²c∂z²(r, z)*ξ^2
-	)
+		∂²c_∂n²(r, z) = Ocn.c(r, z)^2*(
+			Ocn.∂²c_∂r²(r, z)*ζ^2
+			- 2Ocn.∂²c_∂r∂z(r, z)*ξ*ζ
+			+ Ocn.∂²c_∂z²(r, z)*ξ^2
+		)
 
-	du[1] = drds = Ocn.c(r, z)*ξ
-	du[2] = dzds = Ocn.c(r, z)*ζ
-	du[3] = dξds = -Ocn.∂c∂r(r, z)/Ocn.c(r, z)^2
-	du[4] = dζds = -Ocn.∂c∂z(r, z)/Ocn.c(r, z)^2
-	du[5] = dτds = 1/Ocn.c(r, z)
-	du[6] = dpds = ∂²c∂n²(r, z)/Ocn.c(r, z)^2*q
-	du[7] = dqds = Ocn.c(r, z)*p
-end
+		du[1] = dr_ds = Ocn.c(r, z)*ξ
+		du[2] = dz_ds = Ocn.c(r, z)*ζ
+		du[3] = dξ_ds = -Ocn.∂c_∂r(r, z)/Ocn.c(r, z)^2
+		du[4] = dζ_ds = -Ocn.∂c_∂z(r, z)/Ocn.c(r, z)^2
+		du[5] = dτ_ds = 1/Ocn.c(r, z)
+		du[6] = dpʳ_ds = ∂²c_∂n²(r, z)/Ocn.c(r, z)^2*qʳ
+		du[7] = dpⁱ_ds = ∂²c_∂n²(r, z)/Ocn.c(r, z)^2*qⁱ
+		du[8] = dqʳ_ds = Ocn.c(r, z)*pʳ
+		du[9] = dqⁱ_ds = Ocn.c(r, z)*pⁱ
+	end
 
-rng_condition(u, t, ray) = Ocn.R/2 - abs(u[1] - Ocn.R/2)
-rng_affect!(ray) = terminate!(ray)
-CbRng = ContinuousCallback(rng_condition, rng_affect!)
-CbBty = ContinuousCallback(Bty.condition, Bty.affect!)
-CbAti = ContinuousCallback(Ati.condition, Ati.affect!)
-CbBnd = CallbackSet(CbRng, CbBty, CbAti)
+	rng_condition(u, t, ray) = Ocn.R/2 - abs(u[1] - Ocn.R/2)
+	rng_affect!(ray) = terminate!(ray)
+	CbRng = ContinuousCallback(rng_condition, rng_affect!)
+	CbBty = ContinuousCallback(Bty.condition, Bty.affect!)
+	CbAti = ContinuousCallback(Ati.condition, Ati.affect!)
+	CbBnd = CallbackSet(CbRng, CbBty, CbAti)
 
-r₀ = Src.r
-z₀ = Src.z
-ξ₀ = cos(θ₀)/Ocn.c(r₀, z₀)
-ζ₀ = sin(θ₀)/Ocn.c(r₀, z₀)
-τ₀ = 0.0
-p₀ = 1.0/Ocn.c(r₀, z₀)
-q₀ = 0.0
-u₀ = [r₀, z₀, ξ₀, ζ₀, τ₀, p₀, q₀]
+	r₀ = Src.r
+	z₀ = Src.z
+	ξ₀ = cos(θ₀)/Ocn.c(r₀, z₀)
+	ζ₀ = sin(θ₀)/Ocn.c(r₀, z₀)
+	τ₀ = 0.0
 
-TLmax = 100
-S = 10^(TLmax/10)
-sSpan = (0., S)
+	λ₀ = Ocn.c(r₀, z₀)/Src.f
+	ω = Src.f
+	p₀ʳ = 1.0
+	p₀ⁱ = 0.0
+	W₀ = 30λ₀ # 10..50
+	q₀ʳ = 0.0
+	q₀ⁱ = 0.5*ω*W₀^2
 
-prob_eikonal = ODEProblem(eikonal!, u₀, sSpan)
+	u₀ = [r₀, z₀, ξ₀, ζ₀, τ₀, p₀ʳ, p₀ⁱ, q₀ʳ, q₀ⁱ]
 
-return prob_eikonal, CbBnd
+	TLmax = 100
+	S = 10^(TLmax/10)
+	sSpan = (0., S)
+
+	prob_eikonal = ODEProblem(eikonal!, u₀, sSpan)
+
+	return prob_eikonal, CbBnd
 end
 
 function solve_acoustic_propagation(prob_eikonal, CbBnd)
@@ -264,50 +276,47 @@ struct Ray
 	q
 	θ
 	c
-	A₀
-end
-function Ray(θ₀::Real, Src::Entity, Ocn::Medium, Bty::Boundary, Ati::Boundary)
-	Prob, CbBnd = acoustic_propagation_problem(θ₀, Src, Ocn, Bty, Ati)
-	Sol = solve_acoustic_propagation(Prob, CbBnd)
-
-	S = Sol.t[end]
-	r(s) = Sol(s, idxs = 1)
-	z(s) = Sol(s, idxs = 2)
-	ξ(s) = Sol(s, idxs = 3)
-	ζ(s) = Sol(s, idxs = 4)
-	τ(s) = Sol(s, idxs = 5)
-	p(s) = Sol(s, idxs = 6)
-	q(s) = Sol(s, idxs = 7)
-	θ(s) = atan(ζ(s)/ξ(s))
-	c(s) = cos(θ(s))/ξ(s)
-	A₀(s) = 4π\sqrt(abs(c(s)*cos(θ₀)/r(s)/c(0)/q(s)))
-
-	return Ray(θ₀, Sol, S, r, z, ξ, ζ, τ, p, q, θ, c, A₀)
-end
-function Ray(θ₀::Real, Src::Entity, Ocn::Medium, Bty::Boundary)
-	Ati = Boundary(0)
-	return Ray(θ₀, Src, Ocn, Bty, Ati)
+	function Ray(θ₀::Real, Src::Entity, Ocn::Medium, Bty::Boundary, Ati::Boundary = Boundary(0))
+		Prob, CbBnd = acoustic_propagation_problem(θ₀, Src, Ocn, Bty, Ati)
+		Sol = solve_acoustic_propagation(Prob, CbBnd)
+	
+		S = Sol.t[end]
+		r(s) = Sol(s, idxs = 1)
+		z(s) = Sol(s, idxs = 2)
+		ξ(s) = Sol(s, idxs = 3)
+		ζ(s) = Sol(s, idxs = 4)
+		τ(s) = Sol(s, idxs = 5)
+		p(s) = Sol(s, idxs = 6) + im*Sol(s, idxs = 7)
+		q(s) = Sol(s, idxs = 8) + im*Sol(s, idxs = 9)
+		θ(s) = atan(ζ(s)/ξ(s))
+		c(s) = cos(θ(s))/ξ(s)
+	
+		return new(θ₀, Sol, S, r, z, ξ, ζ, τ, p, q, θ, c)
+	end
 end
 
-# struct Beams
-# 	δθ₀::Real
-# 	function Beams(δθ₀::Real, Nθ::Integer, θ₀::Real)
-# 		if iseven(Nθ)
-# 			N = Nθ/2
-# 			θ₀
-# 		else
-# 			N = (Nθ + 1)/2
-# 		end
-# 	end
-# end
+struct Rays
+	θ₀::Real
+	δθ₀::Real
+	Nθ::Integer
+	rays
+	function Rays(θ₀::Real, δθ₀::Real, Nθ::Real, Src::Entity, Ocn::Medium, Bty::Boundary, Ati::Boundary = Boundary(0))
+		if Nθ == 1
+			rays = AcousticPropagation.Ray(θ₀, Src, Ocn, Bty, Ati)
+			return new(θ₀, δθ₀, Nθ, rays)
+		else
+			θ₀s = θ₀ .+ δθ₀/2*(Nθ - 1).*range(-1, 1, length = Nθ)
+			rays = AcousticPropagation.Ray.(θ₀s, Src, Ocn, Bty, Ati)
+			return new(θ₀, δθ₀, Nθ, rays)
+		end
+	end
+end
+function Rays(θ₀::Real, Src::Entity, Ocn::Medium, Bty::Boundary, Ati::Boundary = Boundary(0))
+	return Rays(θ₀, 0.0, 1, Src, Ocn, Bty, Ati)
+end
 
-# function φ(s, n)
-# 	if n ≤ W(s)
-# 		return (W(s) - n)/W(s)
-# 	else
-# 		return 0
-# 	end
-# end
-# P(s, n) = A(s)*φ(s, n)*exp(im*ω*τ(s))
+struct Beams
+
+end
 
 end

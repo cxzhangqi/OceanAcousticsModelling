@@ -1,32 +1,29 @@
-function boundary_reflection_vectors(t_inc::Vector, t_bnd::Vector)
-	# works for generic boundary
-	n_bnd = [-t_bnd[2], t_bnd[1]]
-# 	t_rfl = t_inc - 2(t_inc ⋅ n_bnd)*n_bnd
-	t_rfl = t_inc - 2LinearAlgebra.dot(t_inc, n_bnd)*n_bnd
+## Preamble
+using Plots
 
-	MyAngle(tng) = atand(tng[2]/tng[1])
-	θ_inc = MyAngle(t_inc)
-	θ_bnd = MyAngle(t_bnd)
-	θ_rfl = MyAngle(t_rfl)
-	println(θ_inc)
-	println(θ_bnd)
-	println(θ_rfl)
+include("../AcousticPropagation.jl")
 
-	return t_rfl
+## n²-Linear Profile
+c₀ = 1550
+z₀ = 1e3
+f = 2e3
+src = AcousticPropagation.Entity(0, z₀, f)
+ocn = AcousticPropagation.Medium((r, z) -> c₀/sqrt(1 + 2.4z/c₀), 3.5e3)
+bty = AcousticPropagation.Boundary(z₀)
+θ₀ = -acos(ocn.c(0, z₀)/ocn.c(0, 150))
+
+# ray = AcousticPropagation.Ray(θ₀, src, ocn, bty)
+
+# pt = plot(yaxis = :flip)
+# plot!(ray.Sol, vars = (1, 2))
+# display(pt)
+
+δθ₀ = π/200
+Nθ = 3
+rays = AcousticPropagation.Rays(θ₀, δθ₀, Nθ, src, ocn, bty)
+
+pt = plot(yaxis = :flip)
+for nRay = 1:length(rays.rays)
+	plot!(rays.rays[nRay].Sol, vars = (1, 2))
 end
-
-function boundary_reflection_angles(t_inc::Vector, t_bnd::Vector)
-	# works for parabolic boundary
-	MyAngle(tng) = atan(tng[2]/tng[1])
-	θ_inc = MyAngle(t_inc)
-	θ_bnd = MyAngle(t_bnd)
-
-	θ_inc_flat = θ_inc - θ_bnd
-	θ_rfl_flat = -θ_inc_flat
-	θ_rfl = θ_rfl_flat + θ_bnd
-	return [cos(θ_rfl), sin(θ_rfl)]
-end
-
-θ_inc = π/4
-θ_bnd = π/8
-boundary_reflection_vectors()
+display(pt)
