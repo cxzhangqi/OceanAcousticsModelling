@@ -165,6 +165,10 @@ function Medium(c::AbstractArray, R::Real)
 	cFcn = InterpolatingFunction(r_, z_, c_)
 	return Medium(cFcn, R)
 end
+function Medium(z::AbstractVector, c::AbstractVector, R)
+	cMat = vcat([0 0 R], hcat(z, c, c))
+	return Medium(cMat, R)
+end
 function Medium(c::Real, R::Real)
 	cFcn(r, z) = c
 	return Medium(cFcn, R)
@@ -261,24 +265,28 @@ struct Ray
 	θ
 	c
 	A₀
-	function Ray(θ₀, Src::Entity, Ocn::Medium, Bty::Boundary, Ati::Boundary)
-		Prob, CbBnd = acoustic_propagation_problem(θ₀, Src, Ocn, Bty, Ati)
-		Sol = solve_acoustic_propagation(Prob, CbBnd)
+end
+function Ray(θ₀::Real, Src::Entity, Ocn::Medium, Bty::Boundary, Ati::Boundary)
+	Prob, CbBnd = acoustic_propagation_problem(θ₀, Src, Ocn, Bty, Ati)
+	Sol = solve_acoustic_propagation(Prob, CbBnd)
 
-		S = Sol.t[end]
-		r(s) = Sol(s, idxs = 1)
-		z(s) = Sol(s, idxs = 2)
-		ξ(s) = Sol(s, idxs = 3)
-		ζ(s) = Sol(s, idxs = 4)
-		τ(s) = Sol(s, idxs = 5)
-		p(s) = Sol(s, idxs = 6)
-		q(s) = Sol(s, idxs = 7)
-		θ(s) = atan(ζ(s)/ξ(s))
-		c(s) = cos(θ(s))/ξ(s)
-		A₀(s) = 4π\sqrt(abs(c(s)*cos(θ₀)/r(s)/c(0)/q(s)))
+	S = Sol.t[end]
+	r(s) = Sol(s, idxs = 1)
+	z(s) = Sol(s, idxs = 2)
+	ξ(s) = Sol(s, idxs = 3)
+	ζ(s) = Sol(s, idxs = 4)
+	τ(s) = Sol(s, idxs = 5)
+	p(s) = Sol(s, idxs = 6)
+	q(s) = Sol(s, idxs = 7)
+	θ(s) = atan(ζ(s)/ξ(s))
+	c(s) = cos(θ(s))/ξ(s)
+	A₀(s) = 4π\sqrt(abs(c(s)*cos(θ₀)/r(s)/c(0)/q(s)))
 
-		return new(θ₀, Sol, S, r, z, ξ, ζ, τ, p, q, θ, c, A₀)
-	end
+	return Ray(θ₀, Sol, S, r, z, ξ, ζ, τ, p, q, θ, c, A₀)
+end
+function Ray(θ₀::Real, Src::Entity, Ocn::Medium, Bty::Boundary)
+	Ati = Boundary(0)
+	return Ray(θ₀, Src, Ocn, Bty, Ati)
 end
 
 # struct Beams

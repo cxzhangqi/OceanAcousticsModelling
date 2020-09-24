@@ -13,7 +13,7 @@ Also replicated here are the bottom loss curves for various sediment types, Figu
 ![](img/BottomLoss_Types.png)
 
 ## Acoustic Ray Tracing
-The Eikonal equation is solved using Julia's [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) using the time variable in the solvers for the arc-length. Such solver package permits function inputs for the environmental features. The ray tracing is implemented such that any gridded inputs are incorporated as interpolating functions which are passed to the solver.
+The Eikonal equation is solved using Julia's [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) [[1]](#RackauckasEtAl) using the time variable in the solvers for the arc-length. Such solver package permits function inputs for the environmental features. The ray tracing is implemented such that any gridded inputs are incorporated as interpolating functions which are passed to the solver.
 
 ### Smooth Boundaries
 This first example demonstrates a Gaussian bathymetry and sinusoidal altimetry, inputted as functions. The sound speed profile is also range-dependent as a parabola with maximums at the ocean boundaries, which shifts with the changing boundary depths.
@@ -101,3 +101,5 @@ Implementation specific:
 > <a name="JensenEtAl">[1]</a> Jensen, F. B., Kuperman, W. A., Porter, M. B., & Schmidt, H. (2011). Computational ocean acoustics. Springer Science & Business Media.
 
 > <a name="Lurton">[2]</a> Lurton, X., & Leviandier, L. (2010). Underwater acoustic wave propagation, An Introduction to Underwater Acoustics: Principles and Applications.
+
+> <a name="RackauckasEtAl">[3]</a> Rackauckas, C., & Nie, Q. (2017). Differentialequations. jl–a performant and feature-rich ecosystem for solving differential equations in julia. Journal of Open Research Software, 5(1).

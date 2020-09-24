@@ -108,11 +108,12 @@ savefig(pt, "img/RayTrace_UpwardRefracting.png")
 cVec = [1520, 1500, 1515, 1495, 1545.]
 zVec = [0., 300., 1200., 2e3, 5000.]
 
-cMat = vcat([0 0 250e3], hcat(zVec, cVec, cVec))
+# cMat = vcat([0 0 250e3], hcat(zVec, cVec, cVec))
 
 ati = AcousticPropagation.Boundary(0)
 bty = AcousticPropagation.Boundary(5e3)
-ocn = AcousticPropagation.Medium(cMat, 250e3)
+# ocn = AcousticPropagation.Medium(cMat, 250e3)
+ocn = AcousticPropagation.Medium(zVec, cVec, 250e3)
 src = AcousticPropagation.Entity(0, 0)
 θ_crit = acos(ocn.c(0, 0)/ocn.c(0, 5e3))
 θ₀ = range(0.01θ_crit, θ_crit, length = 10)
