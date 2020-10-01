@@ -1,6 +1,8 @@
 # OceanAcousticsModelling
 This collection of modules is an implementation of a ocean acoustics modelling theory.
 
+This repo is now for display only, and is not being developed further. The author is developing a niche package in Julia [here](https://github.com/kapple19/OceanAcoustics.jl).
+
 ## Bottom Acoustic Loss
 The bottom loss is dependent on the complex-valued sound speed which includes the attenuation in its imaginary component.
 
@@ -75,27 +77,6 @@ For simple ocean propagation with completely absorbing ocean boundaries (just as
 For the single-reflection Lloyd's Mirror interference effect, the same ocean and sonar parameters are displayed.
 
 ![](img/SonarEqs_LloydsMirror.png)
-
-## Further Work
-Ocean acoustics theory implementation:
-* Propagation examples
-  * Deep-sound-channel
-  * Surface-duct
-  * Arctic
-  * Shallow water
-  * Munk profile
-  * Dickins seamount
-  * Balearic Sea
-* Beam tracing
-  * Hat
-  * Gaussian
-* Sonar equations
-* 3D ray tracing
-* Eigenrays
-
-Implementation specific:
-* Julia package production
-* Optimisation (GPU, etc)
 
 ## References
 > <a name="JensenEtAl">[1]</a> Jensen, F. B., Kuperman, W. A., Porter, M. B., & Schmidt, H. (2011). Computational ocean acoustics. Springer Science & Business Media.

@@ -27,6 +27,8 @@ using DifferentialEquations
 using LinearAlgebra
 using Interpolations
 
+export Ray
+
 """
 
 """
@@ -175,21 +177,28 @@ function Medium(c::Real, R::Real)
 end
 
 """
-	Entity(r, z, θ)
+	Position(r, z, θ)
 
 `r`    range of entity
 `z`    depth of entity
-`θ`    angle of ray
 """
-struct Entity
+struct Position
 	r::Real
 	z::Real
+end
+
+struct Signal
 	f::Real
+end
+
+struct Source
+	Pos::Position
+	Sig::Signal
 end
 
 function acoustic_propagation_problem(
 	θ₀::Real,
-	Src::Entity,
+	Src::Source,
 	Ocn::Medium,
 	Bty::Boundary,
 	Ati::Boundary)
@@ -229,19 +238,19 @@ function acoustic_propagation_problem(
 	CbAti = ContinuousCallback(Ati.condition, Ati.affect!)
 	CbBnd = CallbackSet(CbRng, CbBty, CbAti)
 
-	r₀ = Src.r
-	z₀ = Src.z
+	r₀ = Src.Pos.r
+	z₀ = Src.Pos.z
 	ξ₀ = cos(θ₀)/Ocn.c(r₀, z₀)
 	ζ₀ = sin(θ₀)/Ocn.c(r₀, z₀)
 	τ₀ = 0.0
 
-	λ₀ = Ocn.c(r₀, z₀)/Src.f
-	ω = Src.f
+	λ₀ = Ocn.c(r₀, z₀)/Src.Sig.f
+	ω = Src.Sig.f
 	p₀ʳ = 1.0
 	p₀ⁱ = 0.0
-	W₀ = 30λ₀ # 10..50
+	W₀ = 100λ₀ # 10..50
 	q₀ʳ = 0.0
-	q₀ⁱ = 0.5*ω*W₀^2
+	q₀ⁱ = ω*W₀^2/2
 
 	u₀ = [r₀, z₀, ξ₀, ζ₀, τ₀, p₀ʳ, p₀ⁱ, q₀ʳ, q₀ⁱ]
 
@@ -259,10 +268,6 @@ function solve_acoustic_propagation(prob_eikonal, CbBnd)
 	return RaySol
 end
 
-Base.broadcastable(m::Entity) = Ref(m)
-Base.broadcastable(m::Medium) = Ref(m)
-Base.broadcastable(m::Boundary) = Ref(m)
-
 struct Ray
 	θ₀
 	Sol
@@ -276,7 +281,7 @@ struct Ray
 	q
 	θ
 	c
-	function Ray(θ₀::Real, Src::Entity, Ocn::Medium, Bty::Boundary, Ati::Boundary = Boundary(0))
+	function Ray(θ₀::Real, Src::Source, Ocn::Medium, Bty::Boundary; Ati::Boundary = Boundary(0))
 		Prob, CbBnd = acoustic_propagation_problem(θ₀, Src, Ocn, Bty, Ati)
 		Sol = solve_acoustic_propagation(Prob, CbBnd)
 	
@@ -295,28 +300,57 @@ struct Ray
 	end
 end
 
-struct Rays
+struct Beam
 	θ₀::Real
-	δθ₀::Real
-	Nθ::Integer
-	rays
-	function Rays(θ₀::Real, δθ₀::Real, Nθ::Real, Src::Entity, Ocn::Medium, Bty::Boundary, Ati::Boundary = Boundary(0))
-		if Nθ == 1
-			rays = AcousticPropagation.Ray(θ₀, Src, Ocn, Bty, Ati)
-			return new(θ₀, δθ₀, Nθ, rays)
-		else
-			θ₀s = θ₀ .+ δθ₀/2*(Nθ - 1).*range(-1, 1, length = Nθ)
-			rays = AcousticPropagation.Ray.(θ₀s, Src, Ocn, Bty, Ati)
-			return new(θ₀, δθ₀, Nθ, rays)
-		end
+	ray
+	b::Function
+	S::Real
+	function Beam(θ₀::Real, Src::Source, Ocn::Medium, Bty::Boundary, Ati::Boundary = Boundary(0))
+		
+		ray = Ray(θ₀, Src, Ocn, Bty, Ati)
+		
+		r(s) = ray.r(s)
+		z(s) = ray.z(s)
+		τ(s) = ray.τ(s)
+		p(s) = ray.p(s)
+		q(s) = ray.q(s)
+		c(s) = ray.c(s)
+		W(s) = sqrt(-2/ω/imag(p(s)/q(s)))
+	
+		c₀ = c(0)
+		ω = 2π*Src.Sig.f
+		λ₀ = c₀/Src.Sig.f
+		W₀ = W(0)
+		q₀ = q(0)
+	
+		A = 1/c₀ * exp(im*π/4)*sqrt(q₀*ω*cos(θ₀)/2π)
+		b_(s, n) = A * sqrt(c(s)/r(s)/q(s)) * exp(-im*ω * (τ(s) + p(s)/q(s)*n^2/2))
+		b(s, n) = max(100, b_(s, n))
+
+		return new(θ₀, ray, b, ray.S)
 	end
 end
-function Rays(θ₀::Real, Src::Entity, Ocn::Medium, Bty::Boundary, Ati::Boundary = Boundary(0))
-	return Rays(θ₀, 0.0, 1, Src, Ocn, Bty, Ati)
-end
 
-struct Beams
+# struct Field
+# 	θ₀::Union{Real,Vector}
+# 	p::Func
+# 	function Field(θ₀, Rcv, Src, Ocn, Bty, Before, After)
+# 		return new(θ₀, p, TL)
+# 	end
+# end
 
-end
+# struct FieldCoherent
+# 	θ₀::Real
+# 	function FieldCoherent(θ₀, Src::Position, Ocn::Medium, Bty::Boundary; Ati::Boundary = Boundary(0))
+# 		BeforeSum(p) = p
+# 		AfterSum(p) = p
+# 		return Field(θ₀, Src, Ocn, Bty, BeforeSum, AfterSum)
+# 	end
+# end
+
+Base.broadcastable(m::Position) = Ref(m)
+Base.broadcastable(m::Medium) = Ref(m)
+Base.broadcastable(m::Boundary) = Ref(m)
+Base.broadcastable(m::Source) = Ref(m)
 
 end
