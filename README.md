@@ -1,7 +1,7 @@
 # OceanAcousticsModelling
 This collection of modules is an implementation of a ocean acoustics modelling theory.
 
-This repo is now for display only, and is not being developed further. The author is developing a niche package in Julia [here](https://github.com/kapple19/OceanAcoustics.jl).
+This repository is now for display only, and is not being developed further. The author is developing a niche package in Julia [here](https://github.com/kapple19/OceanAcoustics.jl).
 
 ## Bottom Acoustic Loss
 The bottom loss is dependent on the complex-valued sound speed which includes the attenuation in its imaginary component.
