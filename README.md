@@ -15,7 +15,7 @@ Also replicated here are the bottom loss curves for various sediment types, Figu
 ![](img/BottomLoss_Types.png)
 
 ## Acoustic Ray Tracing
-The Eikonal equation is solved using Julia's [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) [[1]](#RackauckasEtAl) using the time variable in the solvers for the arc-length. Such solver package permits function inputs for the environmental features. The ray tracing is implemented such that any gridded inputs are incorporated as interpolating functions which are passed to the solver.
+The Eikonal equation is solved using Julia's [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) [[3]](#RackauckasEtAl) using the time variable in the solvers for the arc-length. Such solver package permits function inputs for the environmental features. The ray tracing is implemented such that any gridded inputs are incorporated as interpolating functions which are passed to the solver.
 
 ### Smooth Boundaries
 This first example demonstrates a Gaussian bathymetry and sinusoidal altimetry, inputted as functions. The sound speed profile is also range-dependent as a parabola with maximums at the ocean boundaries, which shifts with the changing boundary depths.
